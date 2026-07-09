@@ -2,11 +2,15 @@
 
 [ext_resource type="PackedScene" uid="uid://d320j400adxst" path="res://player.tscn" id="1_8fwam"]
 [ext_resource type="Script" uid="uid://eslkkrk00ls2" path="res://mundo.gd" id="1_fni25"]
+[ext_resource type="PackedScene" uid="uid://be4esjnwri2u8" path="res://grid.tscn" id="3_fw4w5"]
+[ext_resource type="Script" uid="uid://dm8cntxouebyj" path="res://obstacles.gd" id="3_otwa2"]
+[ext_resource type="Script" uid="uid://b1pv7wui81k01" path="res://pathfinder.gd" id="5_aou4a"]
+[ext_resource type="Script" uid="uid://bracwlaix6vcf" path="res://pathpreview.gd" id="6_5ckkb"]
 
 [sub_resource type="TileSet" id="TileSet_76ako"]
 tile_size = Vector2i(32, 32)
 
-[node name="Mundo" type="Node2D" unique_id=210905790]
+[node name="World" type="Node2D" unique_id=210905790]
 script = ExtResource("1_fni25")
 
 [node name="Player" parent="." unique_id=431434172 instance=ExtResource("1_8fwam")]
@@ -15,3 +19,12 @@ script = ExtResource("1_fni25")
 tile_set = SubResource("TileSet_76ako")
 
 [node name="Obstacles" type="Node2D" parent="." unique_id=312556396]
+script = ExtResource("3_otwa2")
+
+[node name="Grid" parent="." unique_id=1727681252 instance=ExtResource("3_fw4w5")]
+
+[node name="PathFinder" type="Node" parent="." unique_id=1630296797]
+script = ExtResource("5_aou4a")
+
+[node name="Pathpreview" type="Node2D" parent="." unique_id=2023115088]
+script = ExtResource("6_5ckkb")
