@@ -2,22 +2,25 @@ extends CharacterBody2D
 
 @export var speed := 150.0
 
+var path: Array[Vector2] = []
 var target_position: Vector2
-var moving := false
-
-func _ready():
-	target_position = global_position
 
 func _physics_process(delta):
 
-	if moving:
+	if path.is_empty():
+		velocity = Vector2.ZERO
+		return
 
-		var direction = target_position - global_position
+	target_position = path[0]
 
-		if direction.length() < 2:
-			global_position = target_position
-			velocity = Vector2.ZERO
-			moving = false
-		else:
-			velocity = direction.normalized() * speed
-			move_and_slide()
+	var direction = target_position - global_position
+
+	if direction.length() < 2:
+
+		global_position = target_position
+		path.pop_front()
+
+	else:
+
+		velocity = direction.normalized() * speed
+		move_and_slide()

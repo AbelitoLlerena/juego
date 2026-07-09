@@ -12,6 +12,7 @@ script = ExtResource("1_fni25")
 [node name="Player" parent="." instance=ExtResource("1_8fwam")]
 
 [node name="Ground" type="TileMapLayer" parent="."]
+position = Vector2(16, 16)
 tile_set = SubResource("TileSet_76ako")
 
 [node name="Obstacles" type="Node2D" parent="."]
