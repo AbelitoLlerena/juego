@@ -7,6 +7,7 @@ extends Node2D
 const TILE_SIZE := 32
 const MAP_SIZE := Vector2i(20,20)
 
+var preview_path: Array[Vector2i] = []
 var astar := AStarGrid2D.new()
 
 var blocked_cells := {
@@ -19,6 +20,37 @@ var blocked_cells := {
 	Vector2i(2,7):true
 }
 
+var last_hovered_cell := Vector2i.ZERO
+
+func _process(delta):
+	var hovered = tilemap.local_to_map(tilemap.to_local(get_global_mouse_position()))
+
+	if hovered != last_hovered_cell:
+		last_hovered_cell = hovered
+		update_preview_path(hovered)
+
+func _draw():
+	for cell in preview_path:
+		var pos = tilemap.to_global(tilemap.map_to_local(cell))
+		draw_circle(to_local(pos), 6, Color.YELLOW)
+
+func update_preview_path(target: Vector2i):
+	if !astar.region.has_point(target):
+		preview_path.clear()
+		queue_redraw()
+		return
+		
+	if blocked_cells.has(target):
+		preview_path.clear()
+		queue_redraw()
+		return
+
+	var start = tilemap.local_to_map(tilemap.to_local(player.global_position))
+
+	preview_path = astar.get_id_path(start, target)
+
+	queue_redraw()
+	
 func _ready():
 	setup_astar()
 	draw_obstacles()
@@ -45,23 +77,17 @@ func _unhandled_input(event):
 	if event is InputEventMouseButton \
 	and event.button_index == MOUSE_BUTTON_LEFT \
 	and event.pressed:
-		var start = tilemap.local_to_map(tilemap.to_local(player.global_position))
-		var end = tilemap.local_to_map(tilemap.to_local(get_global_mouse_position()))
-
-		if blocked_cells.has(end):
-			return
-			
-		print("START: ", start)
-		print("END: ", end)
-
-		var id_path = astar.get_id_path(start, end)
-
 		player.path.clear()
 
-		for cell in id_path:
-			var world = tilemap.to_global(tilemap.map_to_local(cell))
-			player.path.append(world)
-
+		for i in range(1, preview_path.size()):
+			player.path.append(
+				tilemap.to_global(
+					tilemap.map_to_local(preview_path[i])
+				)
+			)
+			
+		preview_path.clear()
+		queue_redraw()
 
 func draw_obstacles():
 	for cell in blocked_cells.keys():
