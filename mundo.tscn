@@ -1,17 +1,17 @@
-[gd_scene load_steps=4 format=3 uid="uid://dcrg0t4y8dny0"]
+[gd_scene format=3 uid="uid://dcrg0t4y8dny0"]
 
 [ext_resource type="PackedScene" uid="uid://d320j400adxst" path="res://player.tscn" id="1_8fwam"]
-[ext_resource type="Script" path="res://mundo.gd" id="1_fni25"]
+[ext_resource type="Script" uid="uid://eslkkrk00ls2" path="res://mundo.gd" id="1_fni25"]
 
 [sub_resource type="TileSet" id="TileSet_76ako"]
 tile_size = Vector2i(32, 32)
 
-[node name="Mundo" type="Node2D"]
+[node name="Mundo" type="Node2D" unique_id=210905790]
 script = ExtResource("1_fni25")
 
-[node name="Player" parent="." instance=ExtResource("1_8fwam")]
+[node name="Player" parent="." unique_id=431434172 instance=ExtResource("1_8fwam")]
 
-[node name="Ground" type="TileMapLayer" parent="."]
+[node name="Ground" type="TileMapLayer" parent="." unique_id=1836162003]
 tile_set = SubResource("TileSet_76ako")
 
-[node name="Obstacles" type="Node2D" parent="."]
+[node name="Obstacles" type="Node2D" parent="." unique_id=312556396]

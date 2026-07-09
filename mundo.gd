@@ -70,5 +70,5 @@ func draw_obstacles():
 		rect.color = Color.DARK_RED
 		rect.size = Vector2(TILE_SIZE, TILE_SIZE)
 
-		rect.position = tilemap.map_to_local(cell) - Vector2(16,16)
+		rect.position = tilemap.map_to_local(cell) - Vector2(TILE_SIZE, TILE_SIZE) / 2
 		obstacles.add_child(rect)
