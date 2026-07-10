@@ -2,10 +2,9 @@ class_name ObstacleManager
 extends Node
 
 func create_obstacles(
-	cells:Dictionary,
+	cells:Array[Vector2i],
 	tile_size:int
 ):
-
 	for cell in cells:
 		var rect := ColorRect.new()
 
