@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://bflf00uqpksi2"]
+
+[ext_resource type="Script" uid="uid://nnn1di6520o0" path="res://pathpreview_service.gd" id="1_kbc7t"]
+
+[node name="PathPreviewService" type="Node2D" unique_id=1420627372]
+script = ExtResource("1_kbc7t")

@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cxo1pws8455a8"]
+
+[ext_resource type="Script" uid="uid://d4lafwsar5jdn" path="res://turn_system.gd" id="1_gav1u"]
+
+[node name="TurnSystem" type="Node" unique_id=837350218]
+script = ExtResource("1_gav1u")
