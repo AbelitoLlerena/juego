@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://5s5wu57jq5ux"]
 
-[ext_resource type="Script" uid="uid://v8iqi41w7ay7" path="res://pathfinding_service.gd" id="1_p0nx5"]
+[ext_resource type="Script" uid="uid://v8iqi41w7ay7" path="res://Service/pathfinding_service.gd" id="1_p0nx5"]
 
 [node name="PathfindingService" type="Node" unique_id=1067388769]
 script = ExtResource("1_p0nx5")
