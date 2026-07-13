@@ -33,12 +33,12 @@ func _ready():
 	preview_service.setup(grid_service)
 	preview_system.setup(path_system,preview_service)
 	movement_system.setup(grid_system, grid_service)
+	
 	player.grid_position = grid_service.world_to_grid(player.global_position)
 	grid_system.register_entity(player)
 	turn_system.register(player)
 	
 	movement_system.move_finished.connect(turn_system.end_turn)
-
 	turn_system.turn_started.connect(_on_turn_started)
 
 	turn_system.start()

@@ -33,5 +33,7 @@ func move_unit(unit: Player, path: Array[Vector2i]) -> void:
 		move_finished.emit()
 		await get_tree().create_timer(0.25).timeout
 
+	is_moving = false
+
 func stop_move():
 	is_moving = false
