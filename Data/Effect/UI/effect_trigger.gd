@@ -1,0 +1,19 @@
+class_name EffectTrigger
+extends Resource
+
+enum Trigger {
+	ON_APPLY,
+	ON_REMOVE,
+	TURN_START,
+	TURN_END,
+	ON_MOVE,
+	ON_ATTACK,
+	ON_HIT,
+	ON_CRIT,
+	ON_DAMAGE_RECEIVED,
+	ON_HEAL,
+	ON_SKILL,
+	ON_DEATH,
+	ON_STACK_GAIN,
+	ON_STACK_LOSS
+}

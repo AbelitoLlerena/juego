@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cws37j3buv107"]
+
+[ext_resource type="Script" uid="uid://bul40dpa3rk43" path="res://System/effect_system.gd" id="1_rp6wf"]
+
+[node name="EffectSystem" type="Node" unique_id=2073525898]
+script = ExtResource("1_rp6wf")
