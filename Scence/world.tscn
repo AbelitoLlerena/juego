@@ -1,41 +1,33 @@
-[gd_scene format=3 uid="uid://dxu2vdsjdih5b"]
+[gd_scene format=3 uid="uid://d4h545gfgde5n"]
 
-[ext_resource type="Texture2D" uid="uid://c1ntcec7v6g28" path="res://icon.svg" id="1_fj7yv"]
 [ext_resource type="Script" uid="uid://lc3q5p4ddh0q" path="res://world.gd" id="1_ic0uy"]
-[ext_resource type="Script" uid="uid://crqambfqibkkw" path="res://player.gd" id="2_tlwt5"]
 [ext_resource type="PackedScene" uid="uid://c6crxuyy43hwd" path="res://Scence/grid_service.tscn" id="4_k3n1d"]
 [ext_resource type="PackedScene" uid="uid://5s5wu57jq5ux" path="res://Scence/pathfinding_service.tscn" id="5_2o6r5"]
 [ext_resource type="PackedScene" uid="uid://bflf00uqpksi2" path="res://Scence/path_preview_service.tscn" id="6_70uel"]
 [ext_resource type="PackedScene" uid="uid://cxo1pws8455a8" path="res://Scence/turn_system.tscn" id="7_hiqwa"]
 [ext_resource type="PackedScene" uid="uid://djp1bkujwr6ak" path="res://Scence/grid_system.tscn" id="8_2u3nc"]
 [ext_resource type="PackedScene" uid="uid://cpnhnkc7ihps1" path="res://Scence/movement_system.tscn" id="9_udxuc"]
+[ext_resource type="PackedScene" uid="uid://bko17wyjkmcby" path="res://Scence/ground.tscn" id="10_eu1js"]
 [ext_resource type="PackedScene" uid="uid://cbljb8rkidj6l" path="res://Scence/pathfinding_system.tscn" id="10_ikiii"]
 [ext_resource type="PackedScene" uid="uid://f0osefp5xhvt" path="res://Scence/path_preview_system.tscn" id="11_cbp6q"]
+[ext_resource type="PackedScene" uid="uid://dimlnkst4n5sg" path="res://Scence/player.tscn" id="11_j3d65"]
 
-[sub_resource type="TileSet" id="TileSet_piy24"]
-tile_size = Vector2i(32, 32)
-
-[node name="World" type="Node2D" unique_id=1789076914]
+[node name="World" type="Node2D" unique_id=748687561]
 script = ExtResource("1_ic0uy")
 
-[node name="Player" type="Sprite2D" parent="." unique_id=1270275416]
-position = Vector2(16, 16)
-scale = Vector2(0.25, 0.25)
-texture = ExtResource("1_fj7yv")
-script = ExtResource("2_tlwt5")
+[node name="Systems" type="Node" parent="." unique_id=2128349733]
 
-[node name="Ground" type="TileMapLayer" parent="." unique_id=1876549705]
-tile_set = SubResource("TileSet_piy24")
+[node name="GridSystem" parent="Systems" unique_id=492069209 instance=ExtResource("8_2u3nc")]
 
-[node name="Label" type="Label" parent="." unique_id=1087937066]
-offset_left = 162.0
-offset_top = 1.0
-offset_right = 226.0
-offset_bottom = 24.0
-text = "Turno: 0"
-horizontal_alignment = 3
+[node name="PathfindingSystem" parent="Systems" unique_id=1847126505 instance=ExtResource("10_ikiii")]
 
-[node name="Services" type="Node" parent="." unique_id=1145297251]
+[node name="TurnSystem" parent="Systems" unique_id=837350218 instance=ExtResource("7_hiqwa")]
+
+[node name="MovementSystem" parent="Systems" unique_id=1641306523 instance=ExtResource("9_udxuc")]
+
+[node name="PathPreviewSystem" parent="Systems" unique_id=1427143708 instance=ExtResource("11_cbp6q")]
+
+[node name="Services" type="Node" parent="." unique_id=2027979344]
 
 [node name="GridService" parent="Services" unique_id=1423659098 instance=ExtResource("4_k3n1d")]
 
@@ -43,14 +35,12 @@ horizontal_alignment = 3
 
 [node name="PathPreviewService" parent="Services" unique_id=1420627372 instance=ExtResource("6_70uel")]
 
-[node name="Systems" type="Node" parent="." unique_id=45585276]
+[node name="Label" type="Label" parent="." unique_id=389993598]
+offset_left = 389.0
+offset_top = 1.0
+offset_right = 429.0
+offset_bottom = 24.0
 
-[node name="TurnSystem" parent="Systems" unique_id=837350218 instance=ExtResource("7_hiqwa")]
+[node name="Ground" parent="." unique_id=806602243 instance=ExtResource("10_eu1js")]
 
-[node name="GridSystem" parent="Systems" unique_id=492069209 instance=ExtResource("8_2u3nc")]
-
-[node name="MovementSystem" parent="Systems" unique_id=1641306523 instance=ExtResource("9_udxuc")]
-
-[node name="PathfindingSystem" parent="Systems" unique_id=1847126505 instance=ExtResource("10_ikiii")]
-
-[node name="PathPreviewSystem" parent="Systems" unique_id=1427143708 instance=ExtResource("11_cbp6q")]
+[node name="Player" parent="." unique_id=2031240851 instance=ExtResource("11_j3d65")]

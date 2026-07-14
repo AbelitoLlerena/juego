@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://c25a46copfehn"]
+
+[ext_resource type="Script" uid="uid://dhxwqfso85axc" path="res://Data/effect_data.gd" id="1_b073j"]
+
+[node name="EffectData" type="Node" unique_id=783743021]
+script = ExtResource("1_b073j")

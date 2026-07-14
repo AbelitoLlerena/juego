@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cd1jajnhnc7tg"]
+
+[ext_resource type="Script" uid="uid://c3grwtgyjuc1w" path="res://Component/turn_component.gd" id="1_fr33w"]
+
+[node name="TurnComponent" type="Node" unique_id=1467633629]
+script = ExtResource("1_fr33w")
