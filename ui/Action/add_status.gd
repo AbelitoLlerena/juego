@@ -1,5 +1,5 @@
 class_name AddStatusAction
-extends EffectAction
+extends ActionDefinition
 
 @export var effect : EffectDefinition
 @export var stacks := 1

@@ -1,4 +1,4 @@
 class_name SpendEnergyAction
-extends EffectAction
+extends ActionDefinition
 
 @export var amount : int

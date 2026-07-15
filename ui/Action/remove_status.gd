@@ -1,4 +1,4 @@
 class_name RemoveStatusAction
-extends EffectAction
+extends ActionDefinition
 
 @export var effect_id : StringName

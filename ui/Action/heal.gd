@@ -1,4 +1,4 @@
 class_name HealAction
-extends EffectAction
+extends ActionDefinition
 
 @export var amount : int

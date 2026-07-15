@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://1nlavr5dcksh"]
+
+[ext_resource type="Script" uid="uid://ct3dp2j8nu1o0" path="res://System/skill_system.gd" id="1_kf5gw"]
+
+[node name="SkillSystem" type="Node" unique_id=370891560]
+script = ExtResource("1_kf5gw")

@@ -1,5 +1,5 @@
 class_name ModifyStatAction
-extends EffectAction
+extends ActionDefinition
 
 enum Stat {
 	ATTACK,

@@ -1,10 +1,9 @@
 class_name AndCondition
-extends EffectCondition
+extends ConditionDefinition
 
-@export var conditions : Array[EffectCondition]
+@export var conditions : Array[ConditionDefinition]
 
-
-func check(context : EffectContext) -> bool:
+func check(context) -> bool:
 	for condition in conditions:
 		if not condition.check(context):
 			return false

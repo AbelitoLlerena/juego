@@ -1,5 +1,5 @@
 class_name DealDamageAction
-extends EffectAction
+extends ActionDefinition
 
 @export var amount : int
 @export var ignore_defense := false

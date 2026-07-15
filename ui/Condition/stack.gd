@@ -1,4 +1,4 @@
-class_name StacksEqualCondition
+class_name StackCondition
 extends EffectCondition
 
 @export var amount : int
