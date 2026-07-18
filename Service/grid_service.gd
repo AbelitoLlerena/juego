@@ -1,5 +1,5 @@
 class_name GridService
-extends RefCounted
+extends Node
 
 var tile_map: TileMapLayer
 
