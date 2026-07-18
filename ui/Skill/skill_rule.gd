@@ -3,6 +3,6 @@ extends Resource
 
 @export var enabled := true
 
-@export var condition : SkillCondition
+@export var condition : ConditionDefinition
 
 @export var action : ActionDefinition

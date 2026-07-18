@@ -11,5 +11,5 @@ extends Resource
 @export var mana_cost := 0
 @export var cooldown := 0
 @export var range := 1
-
+@export var target_type: Array[SkillTargetType.SkillTargetFilter]
 @export var rules : Array[SkillRule]
