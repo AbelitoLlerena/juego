@@ -31,7 +31,7 @@ func move_unit(unit: Player, path: Array[Vector2i]) -> void:
 		await tween.finished
 
 		move_finished.emit()
-		await get_tree().create_timer(0.25).timeout
+		await get_tree().create_timer(0.35).timeout
 
 	is_moving = false
 

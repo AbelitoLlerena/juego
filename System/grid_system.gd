@@ -3,15 +3,12 @@ extends Node
 
 var occupied := {}
 
-func register_entity(entity:Player):
-	occupied[entity.grid_position] = entity
-
-func register_obstacle(entity:Obstacle):
-	occupied[entity.grid_position] = entity
+func register_entity(entity:Entity):
+	occupied[entity.c_position.grid_position] = entity
 
 func move_entity(entity:Player, new_cell:Vector2i):
-	occupied.erase(entity.grid_position)
-	entity.grid_position = new_cell
+	occupied.erase(entity.c_position.grid_position)
+	entity.c_position.grid_position = new_cell
 	occupied[new_cell] = entity
 
 func is_cell_free(cell:Vector2i):

@@ -1,7 +1,7 @@
 extends Node2D
 
 @onready var tilemap = $Ground
-@onready var player = $Player
+@onready var player: Player = $Player
 @onready var label = $Label
 
 @onready var grid_service = $Services/GridService
@@ -13,11 +13,15 @@ extends Node2D
 @onready var movement_system = $Systems/MovementSystem
 @onready var turn_system = $Systems/TurnSystem
 @onready var preview_system = $Systems/PathPreviewSystem
+
+@onready var register_system: RegisterSystem
+@onready var register_service := RegisterService.new()
 @onready var cursor_system:CursorSystem = CursorSystem.new()
+@onready var combat_system:CombatSystem = CombatSystem.new()
+
 @onready var collector:InputCollector = InputCollector.new()
 
 var turn := 0
-#var hover: Vector2i = Vector2i.ZERO
 
 var obstacles: Array[Obstacle] = [
 	Obstacle.new_at(Vector2i(1,3)),
@@ -28,7 +32,9 @@ var obstacles: Array[Obstacle] = [
 
 func _ready():
 	create_obstacles()
-	
+	player.initialice()
+	register_system = RegisterSystem.new(register_service)
+
 	grid_service.setup(tilemap)
 	path_service.setup(Vector2i(20,20),Vector2(32,32),obstacles)
 	path_system.setup(path_service)
@@ -37,8 +43,10 @@ func _ready():
 	movement_system.setup(grid_system, grid_service)
 	cursor_system.setup(grid_service,grid_system)
 	add_child(collector)
+	add_child(register_system)
+	register_system.position = Vector2(20, 480)
 	
-	player.grid_position = grid_service.world_to_grid(player.global_position)
+	player.c_position.grid_position = grid_service.world_to_grid(player.global_position)
 	grid_system.register_entity(player)
 	turn_system.register(player)
 	
@@ -48,6 +56,8 @@ func _ready():
 	collector.primary_clicked.connect(cursor_system.on_primary_clicked)
 	cursor_system.cursor_updated.connect(_update_preview)
 	cursor_system.primary_click.connect(_move_player)
+	register_service.update.connect(register_system.update_logs)
+	combat_system.register_action.connect(register_service.register_event)
 
 	turn_system.start()
 
@@ -67,24 +77,6 @@ func _move_player():
 		var path = preview_system.get_preview()
 		movement_system.move_unit(player, path)
 		preview_system.clear()
-#func _unhandled_input(event):
-	#if event is InputEventMouseMotion:
-		#var cell = grid_service.world_to_grid(get_global_mouse_position())
-#
-		#if !movement_system.is_moving and cell != hover:
-			#hover = cell
-			#preview_system.update_preview(player,cell)
-#
-	#elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.is_pressed():
-		#if movement_system.is_moving:
-			#movement_system.stop_move()
-#
-		#else:
-			#var path = preview_system.get_preview()
-#
-			#movement_system.move_unit(player, path)
-#
-			#preview_system.clear()
 
 func create_obstacles():
 	for obs in obstacles:
@@ -95,8 +87,8 @@ func create_obstacles():
 		rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 		rect.position = (
-			Vector2(obs.grid_position) * 32
+			Vector2(obs.c_position.grid_position) * 32
 		)
 
 		add_child(rect)
-		grid_system.register_obstacle(obs)
+		grid_system.register_entity(obs)

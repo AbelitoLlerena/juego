@@ -18,7 +18,7 @@ func setup(
 	astar.update() 
 	
 	for obs in blocked: 
-		astar.set_point_solid(obs.grid_position) 
+		astar.set_point_solid(obs.c_position.grid_position) 
 
 func get_astar_path(start: Vector2i,target: Vector2i) -> Array[Vector2i]: 
 	if not astar.region.has_point(target): 

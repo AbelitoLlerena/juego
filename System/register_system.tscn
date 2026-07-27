@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://bhlmu3kq6t1nd"]
+
+[ext_resource type="Script" uid="uid://d4jdkimjnxg33" path="res://System/register_system.gd" id="1_ctvpo"]
+
+[node name="RegisterSystem" type="Node2D" unique_id=630419090]
+script = ExtResource("1_ctvpo")
