@@ -4,7 +4,7 @@ extends CombatContext
 var attacker : CombatParticipant
 var target : CombatParticipant
 
-var flags : Array[StringName]
+var flags : Array[StringName] = []
 var tags := {
 	"precision":0,
 	"armor_penetration":0,

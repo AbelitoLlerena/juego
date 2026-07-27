@@ -1,7 +1,7 @@
 class_name AreaService
 extends RefCounted
 
-static func get_area(
+static func get_skill_area(
 	origin: Vector2i,
 	selected: Vector2i,
 	skill: SkillDefinition

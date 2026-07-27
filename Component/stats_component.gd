@@ -9,16 +9,17 @@ extends Resource
 
 #recursos
 @export var health:int = 100
-@export var mana:int = 50
-@export var stamina:int = 80
+@export var energy:int = 80
 
-@export var morale:int = 100
-@export var stress:int = 0
+@export var morale:float = 1
+@export var stress:float = 0
 
-@export var heat:int = 0
-@export var thirst:int = 0
-@export var corruption:int = 0
-@export var fatigue:int = 0
+@export var hungry:float = 0
+@export var thirst:float = 0
+
+@export var pain:float = 0
+@export var corruption:float = 0
+@export var fatigue:float = 0
 
 #ataque
 @export var base_physical_damage:int = 5
@@ -37,19 +38,19 @@ extends Resource
 @export var life_steal:float = 0
 @export var energy_steal:float = 0
 
-@export var opportunity_attack_chance:int = 5
-@export var combo_chance:int = 0
-@export var combo_damage:int = 5
+@export var counterattack_chance:float = 0.05
+@export var combo_chance:float = 0
+@export var combo_damage:float = 0.1
 @export var combo_max:int = 5
 
 #defenza
-@export var Armor:int = 5
+@export var armor:int = 5
 @export var shield:int = strength
-@export var block_chance:int = 5
-@export var dodge_chance:int = 5
-@export var damage_reflection:int = 5
-@export var tenacity:int = 5
-@export var damage_reduction:int = 5
+@export var block_chance:float = 0.05
+@export var dodge_chance:float = 0.05
+@export var damage_reflection:float = 0
+@export var tenacity:float = 0.05
+@export var damage_reduction:float = 0
 
 #resistencia
 @export var resistances := {
@@ -63,4 +64,21 @@ extends Resource
 	"bleed":0,
 	"control":0,
 	"movement":0
+}
+
+#regeneraciones
+@export var health_restoration: float = 0.1
+@export var healing_efficiency: float = 0.05
+@export var energy_regeneration:float = 0.2
+@export var energing_efficiency:float = 0.1
+
+@export var variance:Dictionary[String,float] = {
+	"health": 0,
+	"energy": 0,
+	"thirst": 0.025,
+	"hungry": 0.2,
+	"pain": 0,
+	"morale": 0,
+	"stress": 0,
+	"fatigue": 0.01,
 }

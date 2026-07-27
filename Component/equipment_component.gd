@@ -1,16 +1,10 @@
 class_name EquipmentComponent
 extends Resource
 
-@export var weapon:ItemDefinition
-
-@export var helmet:ItemDefinition
-
-@export var armor:ItemDefinition
-
-@export var boots:ItemDefinition
-
-@export var gloves:ItemDefinition
-
-@export var accessory_1:ItemDefinition
-
-@export var accessory_2:ItemDefinition
+@export var weapon:ItemDefinition = null
+@export var helmet:ItemDefinition = null
+@export var armor:ItemDefinition = null
+@export var boots:ItemDefinition = null
+@export var gloves:ItemDefinition = null
+@export var accessory_1:ItemDefinition = null
+@export var accessory_2:ItemDefinition = null

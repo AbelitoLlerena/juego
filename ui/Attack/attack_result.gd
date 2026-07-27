@@ -6,10 +6,12 @@ var weak := false
 var evaded := false
 var blocked := false
 var critical := false
+var reaction := false
 
 var physical_damage := 0
 var magical_damage := 0
 var true_damage := 0
+var blocked_damage := 0
 
 var total_damage := 0
 

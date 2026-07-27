@@ -1,4 +1,4 @@
 class_name PositionComponent
 extends Resource
 
-@export var grid_position: Vector2i
+@export var grid_position: Vector2i = Vector2i.ZERO

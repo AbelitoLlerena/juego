@@ -5,7 +5,6 @@ static func apply_damage(
 	health: HealthComponent,
 	amount: int
 ) -> int:
-
 	if amount <= 0:
 		return 0
 
@@ -17,7 +16,6 @@ static func heal(
 	health: HealthComponent,
 	amount: int
 ) -> int:
-
 	if amount <= 0:
 		return 0
 
@@ -34,7 +32,6 @@ static func spend_energy(
 	energy: EnergyComponent,
 	amount: int
 ) -> bool:
-
 	if amount <= 0:
 		return true
 
@@ -48,7 +45,6 @@ static func restore_energy(
 	energy: EnergyComponent,
 	amount: int
 ) -> int:
-
 	if amount <= 0:
 		return 0
 
@@ -64,20 +60,17 @@ static func restore_energy(
 static func is_alive(
 	health: HealthComponent
 ) -> bool:
-
 	return health.health > 0
 
 static func is_dead(
 	health: HealthComponent
 ) -> bool:
-
 	return health.health <= 0
 
 static func revive(
 	health: HealthComponent,
 	amount := 1
 ) -> void:
-
 	health.health = clamp(
 		amount,
 		1,
@@ -88,6 +81,18 @@ static func refill(
 	health: HealthComponent,
 	energy: EnergyComponent
 ) -> void:
-
 	health.health = health.max_health
 	energy.energy = energy.max_energy
+
+static func process_turn(entity: Being) -> void:
+	entity.health.regen_bar += entity.stats.health_restoration
+	
+	if entity.health.regen_bar >= 1.0:
+		entity.health.regen_bar = 0
+		var heal_amount = int(entity.health.max_health * entity.stats.healing_efficiency)
+		entity.health.health = min(
+			entity.health.health + heal_amount, 
+			entity.health.max_health
+		)
+
+		print("Regenerado: %d HP, vida actual: %d" % [heal_amount, entity.health.health])
