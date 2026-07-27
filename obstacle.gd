@@ -1,10 +1,7 @@
-# obstacle.gd
 class_name Obstacle
-extends Node2D
-
-var grid_position: Vector2i
+extends Thing
 
 static func new_at(cell: Vector2i) -> Obstacle:
 	var o = Obstacle.new()
-	o.grid_position = cell
+	o.c_position.grid_position = cell
 	return o
