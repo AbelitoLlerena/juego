@@ -13,7 +13,7 @@ extends Entity
 
 func _init() -> void:
 	super._init()
-	
+
 	energy = EnergyComponent.new()
 	inventory = InventoryComponent.new()
 	equipment = EquipmentComponent.new()

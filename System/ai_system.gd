@@ -29,6 +29,7 @@ func _build_context(entity: Being) -> AIContext:
 	#context.visible_tiles = visibility_system.get_visible_tiles(entity)
 
 	return context
+
 func _get_visible_enemies(
 	entity: Being
 ) -> Array[Being]:

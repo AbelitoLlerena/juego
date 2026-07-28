@@ -23,7 +23,7 @@ func decide(context: AIContext) -> ActionDecision:
 
 	var destination := path[0]
 
-	if destination != context.self.grid_position:
+	if destination != context.me.c_position.grid_position:
 		decision.type = ActionDecision.Type.MOVE
 		decision.tile = destination
 		return decision
@@ -49,4 +49,4 @@ func _find_closest_enemy(context: AIContext) -> Array:
 			closest_path = path
 			closest = enemy
 
-	return [closest, best_distance]
+	return [closest, closest_path]

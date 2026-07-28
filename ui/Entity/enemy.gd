@@ -1,4 +1,9 @@
 class_name Enemy 
-extends Player
+extends Being
 
-#@export var ia: Compone
+@export var ai: AIComponent
+var combating: bool = false
+
+func initialice() -> void:
+	entity_name = "Johny"
+	ai = MeleeAI.new()

@@ -55,7 +55,7 @@ func _ready():
 	collector.mouse_moved.connect(cursor_system.on_mouse_moved)
 	collector.primary_clicked.connect(cursor_system.on_primary_clicked)
 	cursor_system.cursor_updated.connect(_update_preview)
-	cursor_system.primary_click.connect(_move_player)
+	cursor_system.primary_click.connect(_excecute_action)
 	register_service.update.connect(register_system.update_logs)
 	combat_system.register_action.connect(register_service.register_event)
 
@@ -69,13 +69,23 @@ func _update_preview(cell: CursorState):
 	if !movement_system.is_moving and cell.hovered_entity == null:
 		preview_system.update_preview(player,cell.grid_position)
 
+func _excecute_action():
+	var objetive = cursor_system.state.hovered_entity
+	if objetive is Entity:
+		combat_system.attack(player, objetive)
+	if objetive == null:
+		_move_player()
+
 func _move_player():
 	if movement_system.is_moving:
 		movement_system.stop_move()
 
 	else:
 		var path = preview_system.get_preview()
-		movement_system.move_unit(player, path)
+		if player.combating:
+			movement_system.move_unit(player, [path[0]])
+		else:
+			movement_system.move_unit(player, path)
 		preview_system.clear()
 
 func create_obstacles():
