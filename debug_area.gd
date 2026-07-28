@@ -9,15 +9,15 @@ enum Shape {
 	CONE
 }
 
-@export var shape: Shape = Shape.CONE
+@export var shape: Shape = Shape.CIRCLE
 
 @export var origin := Vector2i(10, 10)
 @export var target := Vector2i(16, 12)
 
-@export var radius := 6
-@export var length := 8
+@export var radius := 2
+@export var length := 4
 @export var width := 1
-@export var angle := 45.0
+@export var angle := 90.0
 
 func _ready():
 	queue_redraw()
@@ -38,16 +38,16 @@ func _draw():
 
 	match shape:
 		Shape.TARGET:
-			tiles = AreaService._target(origin)
+			tiles = AreaService.target(origin)
 
 		Shape.CIRCLE:
-			tiles = AreaService._circle(target, radius)
+			tiles = AreaService.circle(target, radius)
 
 		Shape.LINE:
-			tiles = AreaService._line(origin, target, length, width)
+			tiles = AreaService.line(origin, target, length, width)
 
 		Shape.CONE:
-			tiles = AreaService._cone(origin, target, length, angle)
+			tiles = AreaService.cone(origin, target, length, angle)
 
 	# Dibujar las casillas
 	for tile in tiles:

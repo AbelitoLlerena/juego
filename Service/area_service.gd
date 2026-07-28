@@ -9,26 +9,26 @@ static func get_skill_area(
 
 	match typeof(skill):
 		SkillSelf:
-			return _circle(origin, skill.radius)
+			return circle(origin, skill.radius)
 
 		SkillDefinition:
-			return _target(selected)
+			return target(selected)
 
 		SkillCircle:
-			return _circle(selected, skill.radius)
+			return circle(selected, skill.radius)
 
 		SkillVector:
-			return _line(origin, selected, skill.length, skill.width)
+			return line(origin, selected, skill.length, skill.width)
 
 		SkillCone:
-			return _cone(origin, selected, skill.length, skill.angle)
+			return cone(origin, selected, skill.length, skill.angle)
 
 	return []
 
-static func _target(tile: Vector2i) -> Array[Vector2i]:
+static func target(tile: Vector2i) -> Array[Vector2i]:
 	return [tile]
 
-static func _circle(center: Vector2i, radius: int) -> Array[Vector2i]:
+static func circle(center: Vector2i, radius: int) -> Array[Vector2i]:
 	var result: Array[Vector2i] = []
 
 	for x in range(center.x - radius, center.x + radius + 1):
@@ -36,13 +36,13 @@ static func _circle(center: Vector2i, radius: int) -> Array[Vector2i]:
 
 			var p := Vector2i(x, y)
 
-			if center.distance_to(p) <= radius:
+			if DistanceService.distance(center,p) <= radius:
 				result.append(p)
 
 	return result
 
 
-static func _line(
+static func line(
 	origin: Vector2i,
 	target: Vector2i,
 	length: int,
@@ -73,15 +73,12 @@ static func _line(
 
 	# Elegimos el eje de expansión.
 	if abs(dir.x) > abs(dir.y):
-		# Horizontal
 		expand = Vector2i(0, 1)
 
 	elif abs(dir.y) > abs(dir.x):
-		# Vertical
 		expand = Vector2i(1, 0)
 
 	else:
-		# Diagonal de 45°
 		expand = Vector2i(0, signi(dir.y))
 
 	for tile in line:
@@ -94,17 +91,15 @@ static func _line(
 
 	return result
 
-static func _cone(
+static func cone(
 	origin: Vector2i,
 	target: Vector2i,
 	length: int,
 	angle: float
 ) -> Array[Vector2i]:
-
 	var result: Array[Vector2i] = []
 
 	var forward := target - origin
-
 	if forward == Vector2i.ZERO:
 		return result
 
@@ -113,17 +108,15 @@ static func _cone(
 
 	for x in range(origin.x - length, origin.x + length + 1):
 		for y in range(origin.y - length, origin.y + length + 1):
-
 			var p := Vector2i(x, y)
-			var v := Vector2(p - origin)
 
-			if v.length() > length:
+			var distance := DistanceService.distance(origin, p)
+			if distance == 0 or distance > length:
 				continue
 
-			if v == Vector2.ZERO:
-				continue
+			var v := Vector2(p - origin).normalized()
 
-			var dot := dir.dot(v.normalized())
+			var dot := dir.dot(v)
 
 			if dot >= cos_limit:
 				result.append(p)
