@@ -1,6 +1,8 @@
 class_name StatsComponent
 extends Resource
 
+var _base_stats: Dictionary = {}
+
 #atributos
 @export var strength:int = 10
 @export var agility:int = 10
@@ -85,3 +87,40 @@ extends Resource
 	"stress": 0,
 	"fatigue": 0.01,
 }
+
+func save_base_stats() -> void:
+	_base_stats = {
+		"strength": strength,
+		"agility": agility,
+		"intelligence": intelligence,
+		"constitution": constitution,
+		"base_physical_damage": base_physical_damage,
+		"base_magical_damage": base_magical_damage,
+		"true_damage": true_damage,
+		"crit_chance": crit_chance,
+		"crit_bonus": crit_bonus,
+		"weak_chance": weak_chance,
+		"precision": precision,
+		"armor_penetration": armor_penetration,
+		"magic_penetration": magic_penetration,
+		"crit_multiplier": crit_multiplier,
+		"life_steal": life_steal,
+		"energy_steal": energy_steal,
+		"counterattack_chance": counterattack_chance,
+		"combo_chance": combo_chance,
+		"combo_damage": combo_damage,
+		"armor": armor,
+		"block_chance": block_chance,
+		"dodge_chance": dodge_chance,
+		"damage_reflection": damage_reflection,
+		"tenacity": tenacity,
+		"damage_reduction": damage_reduction,
+		"health_restoration": health_restoration,
+		"healing_efficiency": healing_efficiency,
+		"energy_regeneration": energy_regeneration,
+		"energing_efficiency": energing_efficiency,
+	}
+	_base_stats["resistances"] = resistances.duplicate()
+
+func get_base_stat(stat_name: StringName) -> Variant:
+	return _base_stats.get(stat_name, 0)
