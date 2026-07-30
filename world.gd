@@ -24,6 +24,7 @@ extends Node2D
 @onready var vision_system:VisionSystem = VisionSystem.new()
 
 @onready var collector:InputCollector = InputCollector.new()
+@onready var inventory_ui:InventoryUI = InventoryUI.new()
 
 var turn := 0
 
@@ -52,7 +53,9 @@ func _ready():
 	ai_system.setup(path_system,grid_system)
 	add_child(collector)
 	add_child(register_system)
+	add_child(inventory_ui)
 	register_system.position = Vector2(20, 240)
+	inventory_ui.setup(player)
 	
 	player.c_position.grid_position = grid_service.world_to_grid(player.global_position)
 	enemy.c_position.grid_position = grid_service.world_to_grid(enemy.global_position)
