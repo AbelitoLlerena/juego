@@ -27,24 +27,26 @@ extends Resource
 @export var true_damage:int = 0
 @export var range:int = 1
 
-@export var crit_chance:float = 0.05
+@export var crit_chance:float = 0.25
 @export var crit_bonus:float = 0.5
 @export var weak_chance:float = 0.05
 @export var precision:float = 0.90
 
 @export var armor_penetration:float = 0
 @export var magic_penetration:float = 0.05
+@export var crit_multiplier:float = 0.5
 
 @export var life_steal:float = 0
 @export var energy_steal:float = 0
 
-@export var counterattack_chance:float = 0.05
+@export var counterattack_chance:float = 0.25
+
 @export var combo_chance:float = 0
 @export var combo_damage:float = 0.1
 @export var combo_max:int = 5
 
 #defenza
-@export var armor:int = 5
+@export var armor:int = 2
 @export var shield:int = strength
 @export var block_chance:float = 0.05
 @export var dodge_chance:float = 0.05
@@ -55,6 +57,7 @@ extends Resource
 #resistencia
 @export var resistances := {
 	"physical":0,
+	"magical":0,
 	"mental":0,
 	"fire":0,
 	"ice":0,

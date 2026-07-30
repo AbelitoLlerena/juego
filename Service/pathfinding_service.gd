@@ -20,11 +20,14 @@ func setup(
 	for obs in blocked: 
 		astar.set_point_solid(obs.c_position.grid_position) 
 
+func set_position_solid(position: Vector2i, solid: bool):
+	astar.set_point_solid(position, solid) 
+
 func get_astar_path(start: Vector2i,target: Vector2i) -> Array[Vector2i]: 
 	if not astar.region.has_point(target): 
 		return [] 
 
 	if astar.is_point_solid(target): 
 		return [] 
-	
+
 	return astar.get_id_path(start,target).slice(1)

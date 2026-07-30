@@ -9,7 +9,7 @@ extends Entity
 @export var experience : ExperienceComponent
 @export var turn : TurnComponent
 @export var vision : VisionComponent
-@export var effects : EffectComponent
+@export var effect : EffectComponent
 
 func _init() -> void:
 	super._init()
@@ -22,4 +22,4 @@ func _init() -> void:
 	experience = ExperienceComponent.new()
 	turn = TurnComponent.new()
 	vision = VisionComponent.new()
-	effects = EffectComponent.new()
+	effect = EffectComponent.new()

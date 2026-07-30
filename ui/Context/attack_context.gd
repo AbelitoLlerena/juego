@@ -1,8 +1,8 @@
 class_name AttackContext
 extends CombatContext
 
-var attacker : CombatParticipant
-var target : CombatParticipant
+var attacker : Being
+var target : Entity
 
 var flags : Array[StringName] = []
 var tags := {

@@ -4,11 +4,11 @@ extends Node
 signal turn_started(entity: Player)
 signal turn_finished(entity)
 
-var turn_order = []
+var turn_order: Array[Being] = []
 var current_index := -1
 var current_entity: Being = null
 
-func register(entity):
+func register(entity: Being):
 	turn_order.append(entity)
 
 func start():

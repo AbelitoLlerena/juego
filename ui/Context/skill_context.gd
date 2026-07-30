@@ -1,7 +1,7 @@
 class_name SkillContext
 extends CombatContext
 
-var caster: CombatParticipant
+var caster: Being
 
 var skill: SkillDefinition
 

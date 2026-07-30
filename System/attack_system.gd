@@ -14,6 +14,10 @@ static func attack_being(context:AttackContext) -> void:
 	_apply_armor(context, damage)
 	_apply_resistances(context, damage)
 	
+	context.result.magical_damage = damage["magical"]
+	context.result.physical_damage = damage["physical"]
+	context.result.true_damage = damage["true"]
+
 	_calculate_secondary_effects(context)
 	_calculate_total_damage(context)
 	_calculate_damage_reduction(context)
@@ -79,8 +83,8 @@ static func _calculate_steal_stats(context: AttackContext) -> void:
 static func _calculate_effect_chances(context: AttackContext) -> void:
 	context.stats.effect_chances.clear()
 
-	for effect in context.weapon.effects:
-		context.stats.effect_chances[effect] = effect.chance
+	#for effect in context.weapon.effects:
+		#context.stats.effect_chances[effect] = effect.chance
 
 static func _calculate_hit(context: AttackContext) -> void:
 	var weak:float = context.attacker.stats.weak_chance
@@ -102,17 +106,21 @@ static func _calculate_critical(context: AttackContext) -> void:
 		context.result.critical = \
 			randf() <= context.stats.critical_chance
 
-static func _calculate_raw_damage(context: AttackContext) -> Dictionary:
+static func _calculate_raw_damage(context: AttackContext) -> Dictionary[String,float]:
 	var physical:int = context.stats.physical_damage
 	var magical:int = context.stats.magical_damage
 	var true_damage:int = context.stats.true_damage
 
-	if context.result.critical:
-		var multiplier:float = context.stats.critical_multiplier
+	var multiplier:float = 1
 
-		physical *= multiplier
-		magical *= multiplier
-		true_damage *= multiplier
+	if context.result.weak:
+		multiplier = 0.5
+	elif context.result.critical:
+		multiplier = context.stats.critical_multiplier
+
+	physical *= multiplier
+	magical *= multiplier
+	true_damage *= multiplier
 
 	return {
 		"physical": physical,
@@ -122,11 +130,11 @@ static func _calculate_raw_damage(context: AttackContext) -> Dictionary:
 
 static func _apply_armor(
 	context: AttackContext,
-	damage: Dictionary
-) -> Dictionary:
+	damage: Dictionary[String,float]
+) -> Dictionary[String,float]:
 	var armor = max(
 		0,
-		context.target.stats.armor * context.stats.armor_penetration
+		context.target.stats.armor * (1 - context.stats.armor_penetration)
 	)
 
 	var physical_damage = damage["physical"] - armor
@@ -139,8 +147,8 @@ static func _apply_armor(
 
 static func _calculate_block(
 	context: AttackContext,
-	damage: Dictionary
-) -> Dictionary:
+	damage: Dictionary[String,float]
+) -> Dictionary[String,float]:
 
 	if randf() > context.target.stats.block_chance:
 		return damage
@@ -171,9 +179,9 @@ static func _calculate_block(
 	damage["magical"] = 0
 	return damage
 
-static func _apply_resistances(context: AttackContext, damage: Dictionary) -> Dictionary:
+static func _apply_resistances(context: AttackContext, damage: Dictionary[String,float]) -> Dictionary[String,float]:
 	var damage_physical = damage["physical"] - context.target.stats.resistances["physical"]
-	var damage_magical = damage["magical"] - context.stats.resistances["magical"]
+	var damage_magical = damage["magical"] - context.target.stats.resistances["magical"]
 
 	damage["physical"] = max(0, damage_physical)
 	damage["magical"] = max(0, damage_magical)

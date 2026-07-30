@@ -6,8 +6,8 @@ extends Node
 func setup(path_service : PathfindingService):
 	self.path_service = path_service
 
-func find_path(unit:Player,target:Vector2i):
+func find_path(from:Vector2i,to:Vector2i):
 	return path_service.get_astar_path(
-		unit.c_position.grid_position,
-		target
+		from,
+		to
 	)

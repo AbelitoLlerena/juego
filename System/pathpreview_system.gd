@@ -14,8 +14,11 @@ func setup(
 func get_preview():
 	return preview_service.path
 	
-func update_preview(unit,target_cell):
-	var path = pathfinding_system.find_path(unit,target_cell)
+func update_preview(unit: Player,target_cell: Vector2i):
+	var path = pathfinding_system.find_path(
+		unit.c_position.grid_position,
+		target_cell
+	)
 	preview_service.set_path(path)
 
 func clear():

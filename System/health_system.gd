@@ -1,6 +1,8 @@
 class_name HealthSystem
 extends RefCounted
 
+signal register_event(event: Label)
+
 static func apply_damage(
 	health: HealthComponent,
 	amount: int

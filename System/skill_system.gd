@@ -5,7 +5,7 @@ extends Node
 @export var grid_system: GridSystem
 
 func request_target_tiles(
-	skill:SkillDefinition, 
+	skill:SkillDefinition,
 	caster_position:Vector2i,
 	caster_faction: FactionComponent
 ) -> Dictionary[SkillTargetType.SkillTargetFilter, Array]:
@@ -22,6 +22,7 @@ func request_target_tiles(
 
 			var tile := cursor_system.state.grid_position
 			#selected_tiles.append(tile)
+
 	else:
 		await cursor_system.primary_click
 		
@@ -68,12 +69,12 @@ func activate_skill(
 	grid: GridSystem
 ) -> void:
 	var context := SkillContext.new()
-	context.caster = CombatParticipant.new(caster)
+	context.caster = caster
 	context.skill = skill
 
 	context.target_tiles = await request_target_tiles(
 		skill,
-		context.caster.position.grid_position,
+		context.caster.c_position.grid_position,
 		context.caster.faction
 	)
 

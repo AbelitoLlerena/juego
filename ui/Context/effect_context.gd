@@ -1,7 +1,7 @@
 class_name EffectContext
 extends CombatContext
 
-var bearer: CombatParticipant
+var bearer: Being
 
 var effect: EffectDefinition
 

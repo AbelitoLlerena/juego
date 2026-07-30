@@ -1,43 +1,46 @@
 class_name AISystem
 extends Node
 
-@onready var grid_system: GridSystem
-@onready var faction_system: FactionSystem
+@export var pathfinding_system: PathfindingSystem
+@export var grid_system: GridSystem
 
-func decide(entity: Being) -> ActionDecision:
-	var context := _build_context(entity)
+signal final_decition(action:ActionDefinition)
 
-	return entity.ai.decide(context)
+func setup(
+	pathfinding_system: PathfindingSystem,
+	grid_system: GridSystem
+) -> void:
+	self.grid_system = grid_system
+	self.pathfinding_system = pathfinding_system
 
-func _build_context(entity: Being) -> AIContext:
-	var context := AIContext.new()
+func analice(actor: Enemy) -> void:
+	var context = AIContext.new()
 
-	context.me = entity
+	context.actor = actor
+	context._grid = grid_system
+	context._pathfinding = pathfinding_system
 
-	context.grid = grid_system
+	_get_position_free(context)
+	_get_faction_entities(context)
 
-	#context.allies = faction_system.get_allies(entity)
-	#context.enemies = faction_system.get_enemies(entity)
+	final_decition.emit(actor.ai.decide(context))
+			
 
-	#context.visible_enemies = _get_visible_enemies(entity, context.enemies)
+func _get_position_free(context: AIContext) -> void:
+	context.reachable_tiles = \
+		context.actor.vision.visible_tiles.filter(
+			grid_system.is_cell_free
+		)
 
-	#context.reachable_tiles = grid_system.get_reachable_tiles(
-		#entity.grid_position,
-		#entity.stats.movement
-	#)
-
-	#context.visible_tiles = visibility_system.get_visible_tiles(entity)
-
-	return context
-
-func _get_visible_enemies(
-	entity: Being
-) -> Array[Being]:
-
-	var visible: Array[Being] = []
-
-	#for enemy in enemies:
-		#if visibility_system.can_see(entity, enemy):
-			#visible.append(enemy)
-
-	return visible
+func _get_faction_entities(context: AIContext) -> void:
+	for entity in context.actor.vision.visible_entities:
+		if entity is not Being:
+			continue
+		
+		if FactionSystem.get_relation(
+			context.actor.faction,
+			entity.faction
+		) == SkillTargetType.SkillTargetFilter.ENEMY:
+			context.visible_enemies.append(entity)
+		else:
+			context.visible_allies.append(entity)

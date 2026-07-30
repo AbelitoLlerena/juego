@@ -15,12 +15,13 @@ func setup(
 	self.grid_system = grid_system
 	self.grid_service = grid_service
 
-func move_unit(unit: Player, path: Array[Vector2i]) -> void:
+func move_unit(unit: Being, path: Array[Vector2i]) -> void:
 	var steps := path.duplicate()
 	is_moving = true
 
 	for cell in steps:
 		if !(is_moving and grid_system.is_cell_free(cell)):
+			is_moving = false
 			return
 
 		grid_system.move_entity(unit, cell)

@@ -4,31 +4,32 @@ extends Node
 @onready var movement:MovementSystem
 
 signal register_action(label: String)
+signal end_action
 
 func setup(movement_system:MovementSystem):
 	movement = movement_system
 
 func attack(
-	attacker: Player, 
+	attacker: Being, 
 	target: Entity,
 ) -> void:
 	var context := AttackContext.new()
 
-	context.attacker = CombatParticipant.new(attacker)
+	context.attacker = attacker
 	
 	if target is Thing:
-		context.target = CombatParticipant.new(Being.new())
+		context.target = Being.new()
 		AttackSystem.attack_thing(context)
 		
 	else:
-		context.target = CombatParticipant.new(target)
+		context.target = target
 		AttackSystem.attack_being(context)
 
 	process_attack(context)
 
 func counterattack(
-	attacker: CombatParticipant, 
-	target: CombatParticipant,
+	attacker: Being, 
+	target: Being,
 ) -> void:
 	var context := AttackContext.new()
 
@@ -52,8 +53,8 @@ func process_attack(context: AttackContext) -> void:
 	for effect in context.result.effects:
 		_apply_effects(context.target.effects,effect)
 
-	var a = context.attacker.entity_name
-	var b = context.target.entity_name
+	var a = context.attacker.name
+	var b = context.target.name
 
 	register_action.emit("%s lanza un ataque contra %s" % [a, b])
 
@@ -69,20 +70,23 @@ func process_attack(context: AttackContext) -> void:
 	if context.result.blocked:
 		register_action.emit("%s bloquea %d de daño" % [b, context.result.blocked_damage])
 
+	register_action.emit("%s recibe %d de daño" % [b, context.result.total_damage])
+	
 	if context.result.energy_stolen > 0:
 		register_action.emit("%s roba %d de energía" % [a, context.result.energy_stolen])
 
 	if context.result.life_stolen > 0:
 		register_action.emit("%s roba %d de vida" % [a, context.result.life_stolen])
 
-	if context.result.total_damage > 0:
-		register_action.emit("%s recibe %d de daño" % [b, context.result.total_damage])
-
 	if context.result.reflected_damage > 0:
 		register_action.emit("%s refleja %d de daño" % [b, context.result.reflected_damage])
 
 	if context.result.reaction:
 		register_action.emit("%s contraataca" % b)
+		counterattack(context.target,context.attacker)
+
+	else:
+		end_action.emit()
 
 func _apply_damage(target:HealthComponent, damage:int) -> void:
 	if damage <= 0:
@@ -130,12 +134,6 @@ func _apply_attack_reactions(context: AttackContext) -> void:
 		context.attacker.health,
 		context.result.reflected_damage
 	)
-	
-	if context.result.reaction:
-		counterattack(
-			context.target,
-			context.attacker
-		)
 
 func _dispatch_events(context: AttackContext) -> void:
 	#esto es para la animacion
