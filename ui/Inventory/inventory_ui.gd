@@ -9,7 +9,6 @@ var _overlay: ColorRect
 var _panel_container: MarginContainer
 var _inventory_panel: InventoryPanelUI
 var _equipment_panel: EquipmentPanelUI
-var _tooltip: ItemTooltipUI
 
 func _init() -> void:
 	layer = 10
@@ -43,9 +42,6 @@ func _init() -> void:
 	_equipment_panel = EquipmentPanelUI.new()
 	hbox.add_child(_equipment_panel)
 
-	_tooltip = ItemTooltipUI.new()
-	add_child(_tooltip)
-
 	_equip_system = EquipmentSystem.new()
 	add_child(_equip_system)
 
@@ -58,8 +54,6 @@ func setup(being: Being) -> void:
 	_inventory_panel.use_pressed.connect(_on_use_pressed)
 	_inventory_panel.drop_pressed.connect(_on_drop_pressed)
 	_equipment_panel.unequip_pressed.connect(_on_unequip_pressed)
-
-	_inventory_panel.slot_selected.connect(_on_slot_selected)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
@@ -77,8 +71,6 @@ func _unhandled_input(event: InputEvent) -> void:
 func toggle() -> void:
 	_is_open = !_is_open
 	visible = _is_open
-	if not _is_open:
-		_tooltip.hide()
 
 func open() -> void:
 	_is_open = true
@@ -87,7 +79,6 @@ func open() -> void:
 func close() -> void:
 	_is_open = false
 	visible = false
-	_tooltip.hide()
 
 func is_open() -> bool:
 	return _is_open
@@ -117,9 +108,3 @@ func _on_unequip_pressed(slot: ItemDefinition.SlotType) -> void:
 	if _being == null:
 		return
 	_equip_system.unequip_item(_being, slot)
-
-func _on_slot_selected(slot_data: InventorySlot) -> void:
-	if slot_data != null and slot_data.item != null:
-		_tooltip.show_for(slot_data.item, get_viewport().get_mouse_position())
-	else:
-		_tooltip.hide()

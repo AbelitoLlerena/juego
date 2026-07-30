@@ -58,10 +58,14 @@ const STAT_NAMES := {
 func _init() -> void:
 	visible = false
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	z_index = 100
+	size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	custom_minimum_size = Vector2(0, 0)
 
-	custom_minimum_size = Vector2(200, 0)
-	offset_right = 200
+	var bg := ColorRect.new()
+	bg.color = Color(0.15, 0.15, 0.18, 0.95)
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(bg)
 
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 8)
@@ -70,32 +74,27 @@ func _init() -> void:
 	margin.add_theme_constant_override("margin_bottom", 6)
 	add_child(margin)
 
-	var bg := ColorRect.new()
-	bg.color = Color(0.08, 0.08, 0.1, 0.95)
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(bg)
-
 	var vbox := VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 4)
 	margin.add_child(vbox)
 
 	_name_label = Label.new()
 	_name_label.add_theme_font_size_override("font_size", 14)
+	_name_label.add_theme_color_override("font_color", Color.WHITE)
 	vbox.add_child(_name_label)
 
 	_type_label = Label.new()
 	_type_label.add_theme_font_size_override("font_size", 11)
-	_type_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
+	_type_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
 	vbox.add_child(_type_label)
 
 	var sep := HSeparator.new()
-	sep.add_theme_constant_override("separation", 4)
 	vbox.add_child(sep)
 
 	_description_label = Label.new()
 	_description_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_description_label.add_theme_font_size_override("font_size", 11)
+	_description_label.add_theme_color_override("font_color", Color.WHITE)
 	vbox.add_child(_description_label)
 
 	_stats_container = VBoxContainer.new()
@@ -103,15 +102,14 @@ func _init() -> void:
 	vbox.add_child(_stats_container)
 
 	var sep2 := HSeparator.new()
-	sep2.add_theme_constant_override("separation", 4)
 	vbox.add_child(sep2)
 
 	_weight_label = Label.new()
 	_weight_label.add_theme_font_size_override("font_size", 11)
-	_weight_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+	_weight_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
 	vbox.add_child(_weight_label)
 
-func show_for(item: ItemDefinition, mouse_pos: Vector2) -> void:
+func show_for(item: ItemDefinition) -> void:
 	if item == null:
 		hide()
 		return
@@ -147,15 +145,15 @@ func show_for(item: ItemDefinition, mouse_pos: Vector2) -> void:
 		var prefix := "+" if value > 0 else ""
 		stat_label.text = "%s %s%s" % [display_name, prefix, str(value)]
 		if value > 0:
-			stat_label.add_theme_color_override("font_color", Color(0.3, 0.9, 0.3))
+			stat_label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3))
 		else:
-			stat_label.add_theme_color_override("font_color", Color(0.9, 0.3, 0.3))
+			stat_label.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4))
 		_stats_container.add_child(stat_label)
 
 	if item.use_action != &"":
 		var action_label := Label.new()
 		action_label.add_theme_font_size_override("font_size", 11)
-		action_label.add_theme_color_override("font_color", Color(0.4, 0.7, 1.0))
+		action_label.add_theme_color_override("font_color", Color(0.5, 0.8, 1.0))
 		var action_text := ""
 		match item.use_action:
 			&"heal":
@@ -172,23 +170,3 @@ func show_for(item: ItemDefinition, mouse_pos: Vector2) -> void:
 	_weight_label.text = "Peso: %.1f" % item.weight
 
 	visible = true
-	size = Vector2.ZERO
-	_position_tooltip(mouse_pos)
-
-func _position_tooltip(mouse_pos: Vector2) -> void:
-	var viewport_size := get_viewport_rect().size
-	var tooltip_size := size
-
-	var x := mouse_pos.x + 16
-	var y := mouse_pos.y + 16
-
-	if x + tooltip_size.x > viewport_size.x:
-		x = mouse_pos.x - tooltip_size.x - 16
-	if y + tooltip_size.y > viewport_size.y:
-		y = mouse_pos.y - tooltip_size.y - 16
-
-	position = Vector2(x, y)
-
-func _process(_delta: float) -> void:
-	if visible:
-		_position_tooltip(get_global_mouse_position())

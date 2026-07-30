@@ -56,6 +56,7 @@ func _ready():
 	add_child(inventory_ui)
 	register_system.position = Vector2(20, 240)
 	inventory_ui.setup(player)
+	_add_test_items()
 	
 	player.c_position.grid_position = grid_service.world_to_grid(player.global_position)
 	enemy.c_position.grid_position = grid_service.world_to_grid(enemy.global_position)
@@ -134,3 +135,12 @@ func create_obstacles():
 
 		add_child(rect)
 		grid_system.register_entity(obs)
+
+func _add_test_items() -> void:
+	var club := load("res://Data/Items/club_iron.tres") as ItemDefinition
+	var herb := load("res://Data/Items/herb_health.tres") as ItemDefinition
+	var orb := load("res://Data/Items/orb_mystic.tres") as ItemDefinition
+
+	player.inventory.add_item(club, 1)
+	player.inventory.add_item(herb, 5)
+	player.inventory.add_item(orb, 3)

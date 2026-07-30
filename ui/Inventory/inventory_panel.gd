@@ -14,6 +14,7 @@ var _use_btn: Button
 var _drop_btn: Button
 var _actions_bar: HBoxContainer
 var _selected_slot: InventorySlot = null
+var _tooltip: ItemTooltipUI
 
 const COLUMNS := 6
 const GRID_SIZE := Vector2(280, 300)
@@ -86,6 +87,9 @@ func _init() -> void:
 	_drop_btn.pressed.connect(_on_drop_pressed)
 	_actions_bar.add_child(_drop_btn)
 
+	_tooltip = ItemTooltipUI.new()
+	vbox.add_child(_tooltip)
+
 func setup(inventory: InventoryComponent) -> void:
 	if _inventory != null:
 		if _inventory.inventory_changed.is_connected(_refresh):
@@ -133,9 +137,10 @@ func _on_slot_clicked(slot_ui: ItemSlotUI) -> void:
 	slot_ui.set_highlighted(true)
 	_selected_slot = slot_ui.get_slot_data()
 	_update_actions()
+	_update_tooltip()
 	slot_selected.emit(_selected_slot)
 
-func _on_slot_hovered(slot_ui: ItemSlotUI) -> void:
+func _on_slot_hovered(_slot_ui: ItemSlotUI) -> void:
 	pass
 
 func _on_slot_unhovered(_slot_ui: ItemSlotUI) -> void:
@@ -158,6 +163,12 @@ func _update_actions() -> void:
 	_equip_btn.visible = item.is_equipment()
 	_use_btn.visible = item.is_consumable()
 	_drop_btn.visible = true
+
+func _update_tooltip() -> void:
+	if _selected_slot != null and _selected_slot.item != null:
+		_tooltip.show_for(_selected_slot.item)
+	else:
+		_tooltip.hide()
 
 func _on_equip_pressed() -> void:
 	if _selected_slot != null and _selected_slot.item != null:
