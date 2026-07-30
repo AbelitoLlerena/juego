@@ -1,13 +1,13 @@
 class_name CombatSystem
 extends Node
 
-@onready var movement:MovementSystem
+@onready var _movement:MovementSystem
 
 signal register_action(label: String)
 signal end_action
 
 func setup(movement_system:MovementSystem):
-	movement = movement_system
+	_movement = movement_system
 
 func attack(
 	attacker: Being, 
@@ -61,7 +61,7 @@ func process_attack(context: AttackContext) -> void:
 	if context.result.evaded:
 		register_action.emit("%s lo evita" % b)
 
-	if context.result.weak:
+	elif context.result.weak:
 		register_action.emit("%s realiza un golpe débil" % a)
 
 	if context.result.critical:

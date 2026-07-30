@@ -46,7 +46,7 @@ func _ready():
 	preview_service.setup(grid_service)
 	path_system.setup(path_service)
 	grid_system.setup(path_service)
-	preview_system.setup(path_system,preview_service)
+	preview_system.setup(path_system,grid_system,preview_service)
 	movement_system.setup(grid_system, grid_service)
 	cursor_system.setup(grid_service,grid_system)
 	ai_system.setup(path_system,grid_system)
@@ -84,7 +84,7 @@ func _analice_decition(action: ActionDefinition) -> void:
 		turn_system.end_turn()
 
 func _on_turn_started(entity: Being):
-	print(entity.name)
+	#print(entity.name)
 	vision_system.update(entity.vision, entity.c_position, grid_system)
 	if entity is Enemy:
 		ai_system.analice(entity)

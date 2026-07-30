@@ -1,25 +1,36 @@
 class_name PathPreviewSystem
 extends Node
 
-@export var pathfinding_system : PathfindingSystem
-@export var preview_service : PathPreviewService
+@export var _pathfinding_system : PathfindingSystem
+@export var _grid_system : GridSystem
+@export var _preview_service : PathPreviewService
 
 func setup(
 	pathfinding_system : PathfindingSystem,
+	grid_system : GridSystem,
 	preview_service : PathPreviewService
 ):
-	self.preview_service = preview_service
-	self.pathfinding_system = pathfinding_system
+	_preview_service = preview_service
+	_grid_system = grid_system
+	_pathfinding_system = pathfinding_system
 
 func get_preview():
-	return preview_service.path
+	return _preview_service.path
 	
-func update_preview(unit: Player,target_cell: Vector2i):
-	var path = pathfinding_system.find_path(
+func update_preview(unit: Player,target_cell: Vector2i) -> void:
+	if _grid_system.get_entity(target_cell) is Obstacle:
+		_preview_service.set_path([])
+
+	var path = _pathfinding_system.find_path(
 		unit.c_position.grid_position,
 		target_cell
 	)
-	preview_service.set_path(path)
+
+	if _grid_system.get_entity(target_cell) is Entity:
+		path = path.slice(0, path.size() - 1)
+
+	else:
+		_preview_service.set_path(path)
 
 func clear():
-	preview_service.clear()
+	_preview_service.clear()

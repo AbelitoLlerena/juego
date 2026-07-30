@@ -1,14 +1,14 @@
 class_name RegisterSystem
 extends Node2D
 
-@onready var register_service: RegisterService
+@onready var _register_service: RegisterService
 @onready var container: VBoxContainer
 
 var labels: Array[Label] = []
 var max_register: int = 10
 
 func _init(register_service: RegisterService) -> void:
-	self.register_service = register_service
+	_register_service = register_service
 	container = VBoxContainer.new()
 	add_child(container)
 
@@ -29,7 +29,7 @@ func _ready() -> void:
 	update_logs()
 
 func update_logs() -> void:
-	var last_events := register_service.get_last_events(max_register)
+	var last_events := _register_service.get_last_events(max_register)
 
 	for i in range(labels.size()):
 		labels[i].text = last_events[i] if i < last_events.size() else ""

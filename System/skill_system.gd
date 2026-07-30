@@ -1,8 +1,8 @@
 class_name SkillSystem
 extends Node
 
-@export var cursor_system: CursorSystem
-@export var grid_system: GridSystem
+@export var _cursor_system: CursorSystem
+@export var _grid_system: GridSystem
 
 func request_target_tiles(
 	skill:SkillDefinition,
@@ -15,20 +15,20 @@ func request_target_tiles(
 		var count:int = 0
 		while count < skill.target_type.size():
 			#aplicar condition cursor
-			await cursor_system.primary_click
+			await _cursor_system.primary_click
 
-			selected_tiles[count] = [cursor_system.state.grid_position]
+			selected_tiles[count] = [_cursor_system.state.grid_position]
 			count += 1
 
-			var tile := cursor_system.state.grid_position
+			var tile := _cursor_system.state.grid_position
 			#selected_tiles.append(tile)
 
 	else:
-		await cursor_system.primary_click
+		await _cursor_system.primary_click
 		
 		var tiles:Array[Vector2i] = AreaService.get_skill_area(
 			caster_position,
-			cursor_system.state.grid_position,
+			_cursor_system.state.grid_position,
 			skill
 		)
 
@@ -39,7 +39,7 @@ func request_target_tiles(
 			if tile == caster_position:
 				continue
 
-			var entity:Entity = grid_system.get_entity(tile)
+			var entity:Entity = _grid_system.get_entity(tile)
 
 			if entity is Thing:
 				continue
