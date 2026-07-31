@@ -5,25 +5,22 @@ extends Node2D
 @onready var enemy: Enemy = $Enemy
 @onready var label = $Label
 
-@onready var grid_service = $Services/GridService
-@onready var path_service = $Services/PathfindingService
-@onready var preview_service = $Services/PathPreviewService
+@onready var grid_service: GridService = GridService.new()
+@onready var path_service: PathfindingService = PathfindingService.new()
+@onready var preview_service: PathPreviewService = PathPreviewService.new()
+@onready var register_service: RegisterService = RegisterService.new()
 
-@onready var grid_system = $Systems/GridSystem
-@onready var path_system = $Systems/PathfindingSystem
-@onready var movement_system = $Systems/MovementSystem
-@onready var turn_system = $Systems/TurnSystem
-@onready var preview_system = $Systems/PathPreviewSystem
+@onready var grid_system: GridSystem = GridSystem.new()
+@onready var path_system: PathfindingSystem = PathfindingSystem.new()
+@onready var movement_system: MovementSystem = MovementSystem.new()
+@onready var turn_system: TurnSystem = TurnSystem.new()
+@onready var preview_system: PathPreviewSystem = PathPreviewSystem.new()
+@onready var register_system: RegisterSystem = RegisterSystem.new(register_service)
+@onready var cursor_system: CursorSystem = CursorSystem.new()
+@onready var combat_system: CombatSystem = CombatSystem.new()
+@export var ai_system: AISystem = AISystem.new()
 
-@onready var register_system: RegisterSystem
-@onready var register_service := RegisterService.new()
-
-@export var ai_system:AISystem = AISystem.new()
-@onready var cursor_system:CursorSystem = CursorSystem.new()
-@onready var combat_system:CombatSystem = CombatSystem.new()
-@onready var vision_system:VisionSystem = VisionSystem.new()
-
-@onready var collector:InputCollector = InputCollector.new()
+@onready var collector: InputCollector = InputCollector.new()
 
 var turn := 0
 
@@ -36,10 +33,6 @@ var obstacles: Array[Obstacle] = [
 
 func _ready():
 	create_obstacles()
-	
-	player.initialice()
-	enemy.initialice()
-	register_system = RegisterSystem.new(register_service)
 
 	grid_service.setup(tilemap)
 	path_service.setup(Vector2i(20,20),Vector2(32,32),obstacles)
@@ -50,10 +43,15 @@ func _ready():
 	movement_system.setup(grid_system, grid_service)
 	cursor_system.setup(grid_service,grid_system)
 	ai_system.setup(path_system,grid_system)
+
 	add_child(collector)
+	add_child(preview_service)
+	add_child(movement_system)
 	add_child(register_system)
 	register_system.position = Vector2(20, 240)
-	
+
+	player.initialice()
+	enemy.initialice()
 	player.c_position.grid_position = grid_service.world_to_grid(player.global_position)
 	enemy.c_position.grid_position = grid_service.world_to_grid(enemy.global_position)
 	grid_system.register_entity(player)
@@ -74,18 +72,18 @@ func _ready():
 
 	turn_system.start()
 
-func _analice_decition(action: ActionDefinition) -> void:
+func _analice_decition(entity: Being, action: ActionDefinition) -> void:
 	if action is AttackAction:
-		combat_system.attack(enemy, action.target)
+		combat_system.attack(entity, action.target)
 	elif action is MoveAction:
 		var to: Array[Vector2i] = [action.position]
-		movement_system.move_unit(enemy, to)
+		movement_system.move_unit(entity, to)
 	else:
 		turn_system.end_turn()
 
 func _on_turn_started(entity: Being):
-	#print(entity.name)
-	vision_system.update(entity.vision, entity.c_position, grid_system)
+	print(entity.name)
+	VisionSystem.update(entity.vision, entity.c_position, grid_system)
 	if entity is Enemy:
 		ai_system.analice(entity)
 	else:
