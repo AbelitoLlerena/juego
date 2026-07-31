@@ -116,6 +116,10 @@ func _excecute_action():
 		container_ui.setup(player.inventory, objetive.inventory, objetive.chest_name)
 		container_ui.open()
 		return
+	elif objetive is Enemy and objetive.is_dead:
+		container_ui.setup(player.inventory, objetive.inventory, "Cadáver de " + objetive.entity_name)
+		container_ui.open()
+		return
 	elif objetive is Entity:
 		if hud._current_entity == player and hud._current_entity.turn.action_points > 0:
 			hud.spend_action(1)
