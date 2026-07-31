@@ -1,5 +1,5 @@
 extends Node2D
-
+@onready var collector: InputCollector = InputCollector.new()
 @onready var tilemap = $Ground
 @onready var player: Player = $Player
 @onready var enemy: Enemy = $Enemy
