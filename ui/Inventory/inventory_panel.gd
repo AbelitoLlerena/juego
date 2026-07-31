@@ -113,6 +113,12 @@ func deselect_all() -> void:
 	_update_actions()
 	_update_tooltip()
 
+func hide_actions() -> void:
+	_actions_bar.visible = false
+
+func show_actions() -> void:
+	_actions_bar.visible = true
+
 func _refresh() -> void:
 	for child in _grid.get_children():
 		child.queue_free()
