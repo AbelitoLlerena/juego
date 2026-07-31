@@ -105,6 +105,14 @@ func setup(inventory: InventoryComponent) -> void:
 	_inventory.item_removed.connect(_on_item_removed)
 	_refresh()
 
+func deselect_all() -> void:
+	_selected_slot = null
+	for child in _grid.get_children():
+		if child is ItemSlotUI:
+			child.set_highlighted(false)
+	_update_actions()
+	_update_tooltip()
+
 func _refresh() -> void:
 	for child in _grid.get_children():
 		child.queue_free()

@@ -22,6 +22,7 @@ extends Node2D
 
 @onready var inventory_ui:InventoryUI = InventoryUI.new()
 @onready var hud: HUD = HUD.new()
+@onready var container_ui: ContainerUI = ContainerUI.new()
 
 var turn := 0
 
@@ -34,6 +35,7 @@ var obstacles: Array[Obstacle] = [
 
 func _ready():
 	create_obstacles()
+	_create_chest()
 
 	grid_service.setup(tilemap)
 	path_service.setup(Vector2i(20,20),Vector2(32,32),obstacles)
@@ -51,6 +53,7 @@ func _ready():
 	add_child(register_system)
 	add_child(inventory_ui)
 	add_child(hud)
+	add_child(container_ui)
 	register_system.position = Vector2(20, 240)
 
 	player.initialice()
@@ -109,6 +112,10 @@ func _excecute_action():
 	var objetive = cursor_system.state.hovered_entity
 	if objetive is Player:
 		return
+	elif objetive is Chest:
+		container_ui.setup(player.inventory, objetive.inventory, objetive.chest_name)
+		container_ui.open()
+		return
 	elif objetive is Entity:
 		if hud._current_entity == player and hud._current_entity.turn.action_points > 0:
 			hud.spend_action(1)
@@ -156,6 +163,25 @@ func create_obstacles():
 
 		add_child(rect)
 		grid_system.register_entity(obs)
+
+func _create_chest() -> void:
+	var chest := Chest.new()
+	chest.entity_name = "Cofre"
+	chest.chest_name = "Cofre del Tesoro"
+	var chest_pos := Vector2i(5, 4)
+	chest.c_position.grid_position = chest_pos
+
+	var club := load("res://Data/Items/club_iron.tres") as ItemDefinition
+	var herb := load("res://Data/Items/herb_health.tres") as ItemDefinition
+	chest.inventory.add_item(club, 1)
+	chest.inventory.add_item(herb, 3)
+
+	grid_system.register_entity(chest)
+
+	var chest_visual := Sprite2D.new()
+	chest_visual.texture = load("res://sprites/chest/Chest.png")
+	chest_visual.position = Vector2(chest_pos) * Vector2(32, 32) + Vector2(16, 16)
+	add_child(chest_visual)
 
 func _add_test_items() -> void:
 	var club := load("res://Data/Items/club_iron.tres") as ItemDefinition
