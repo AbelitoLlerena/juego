@@ -20,7 +20,7 @@ extends Node2D
 @onready var combat_system: CombatSystem = CombatSystem.new()
 @export var ai_system: AISystem = AISystem.new()
 
-@onready var collector: InputCollector = InputCollector.new()
+@onready var inventory_ui:InventoryUI = InventoryUI.new()
 
 var turn := 0
 
@@ -48,6 +48,7 @@ func _ready():
 	add_child(preview_service)
 	add_child(movement_system)
 	add_child(register_system)
+	add_child(inventory_ui)
 	register_system.position = Vector2(20, 240)
 
 	player.initialice()
@@ -58,6 +59,9 @@ func _ready():
 	grid_system.register_entity(enemy)
 	turn_system.register(player)
 	turn_system.register(enemy)
+
+	inventory_ui.setup(player)
+	_add_test_items()
 
 	movement_system.move_finished.connect(turn_system.end_turn)
 	turn_system.turn_started.connect(_on_turn_started)
@@ -129,3 +133,12 @@ func create_obstacles():
 
 		add_child(rect)
 		grid_system.register_entity(obs)
+
+func _add_test_items() -> void:
+	var club := load("res://Data/Items/club_iron.tres") as ItemDefinition
+	var herb := load("res://Data/Items/herb_health.tres") as ItemDefinition
+	var orb := load("res://Data/Items/orb_mystic.tres") as ItemDefinition
+
+	player.inventory.add_item(club, 1)
+	player.inventory.add_item(herb, 5)
+	player.inventory.add_item(orb, 3)
