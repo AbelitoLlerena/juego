@@ -21,6 +21,7 @@ extends Node2D
 @export var ai_system: AISystem = AISystem.new()
 
 @onready var inventory_ui:InventoryUI = InventoryUI.new()
+@onready var hud: HUD = HUD.new()
 
 var turn := 0
 
@@ -49,6 +50,7 @@ func _ready():
 	add_child(movement_system)
 	add_child(register_system)
 	add_child(inventory_ui)
+	add_child(hud)
 	register_system.position = Vector2(20, 240)
 
 	player.initialice()
@@ -61,17 +63,18 @@ func _ready():
 	turn_system.register(enemy)
 
 	inventory_ui.setup(player)
+	hud.setup(player)
 	_add_test_items()
 
-	movement_system.move_finished.connect(turn_system.end_turn)
 	turn_system.turn_started.connect(_on_turn_started)
+	hud.end_turn_pressed.connect(turn_system.end_turn)
+	movement_system.move_finished.connect(_on_move_finished)
 	collector.mouse_moved.connect(cursor_system.on_mouse_moved)
 	collector.primary_clicked.connect(cursor_system.on_primary_clicked)
 	cursor_system.cursor_updated.connect(_update_preview)
 	cursor_system.primary_click.connect(_excecute_action)
 	register_service.update.connect(register_system.update_logs)
 	combat_system.register_action.connect(register_service.register_event)
-	combat_system.end_action.connect(turn_system.end_turn)
 	ai_system.final_decition.connect(_analice_decition)
 
 	turn_system.start()
@@ -86,13 +89,17 @@ func _analice_decition(entity: Being, action: ActionDefinition) -> void:
 		turn_system.end_turn()
 
 func _on_turn_started(entity: Being):
-	print(entity.name)
 	VisionSystem.update(entity.vision, entity.c_position, grid_system)
+	hud.setup(entity)
 	if entity is Enemy:
 		ai_system.analice(entity)
 	else:
 		turn += 1
-		label.text = "Turno: %d" % turn
+		hud.update_turn_counter(turn)
+
+func _on_move_finished() -> void:
+	if hud._current_entity is Enemy:
+		turn_system.end_turn()
 
 func _update_preview(cell: CursorState):
 	if !movement_system.is_moving and cell.hovered_entity == null:
@@ -101,23 +108,39 @@ func _update_preview(cell: CursorState):
 func _excecute_action():
 	var objetive = cursor_system.state.hovered_entity
 	if objetive is Player:
-		turn_system.end_turn()
+		return
 	elif objetive is Entity:
-		combat_system.attack(player, objetive)
+		if hud._current_entity == player and hud._current_entity.turn.action_points > 0:
+			hud.spend_action(1)
+			combat_system.attack(player, objetive)
+		return
 	if objetive == null:
 		_move_player()
 
 func _move_player():
 	if movement_system.is_moving:
 		movement_system.stop_move()
+		return
 
+	if hud._current_entity != player:
+		return
+	if hud._current_entity.turn.movement_points <= 0:
+		return
+
+	var path = preview_system.get_preview()
+	if path.is_empty():
+		return
+
+	var steps_to_use: Array[Vector2i]
+	if player.combating:
+		steps_to_use = [path[0]]
 	else:
-		var path = preview_system.get_preview()
-		if player.combating:
-			movement_system.move_unit(player, [path[0]])
-		else:
-			movement_system.move_unit(player, path)
-		preview_system.clear()
+		var max_steps = mini(path.size(), player.turn.movement_points)
+		steps_to_use = path.slice(0, max_steps)
+
+	hud.spend_movement(steps_to_use.size())
+	movement_system.move_unit(player, steps_to_use)
+	preview_system.clear()
 
 func create_obstacles():
 	for obs in obstacles:
