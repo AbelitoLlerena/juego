@@ -21,6 +21,7 @@ extends Node2D
 @export var ai_system: AISystem = AISystem.new()
 
 @onready var inventory_ui:InventoryUI = InventoryUI.new()
+@onready var collector: InputCollector = InputCollector.new()
 
 var turn := 0
 
