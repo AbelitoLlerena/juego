@@ -2,14 +2,13 @@ class_name Enemy
 extends Being
 
 @export var ai: AIComponent
-@export var max_health: int = 10
 var combating: bool = false
-var is_dead: bool = false
+
 var _health_bar: HealthBar3D
 
 func _ready() -> void:
-	health.max_health = max_health
-	health.health = max_health
+	health.max_health = 10
+	health.health = 10
 	_health_bar = HealthBar3D.new()
 	_health_bar.position = Vector2(0, -20)
 	add_child(_health_bar)
@@ -23,11 +22,11 @@ func initialice() -> void:
 
 func _on_health_changed(current: int, maximum: int) -> void:
 	_update_health_bar()
-	if current <= 0 and not is_dead:
+	if current <= 0 and not health.is_dead:
 		_die()
 
 func _die() -> void:
-	is_dead = true
+	health.is_dead = true
 	health.is_dead = true
 	combating = false
 	_health_bar.visible = false

@@ -2,7 +2,6 @@ extends Node2D
 @onready var tilemap = $Ground
 @onready var player: Player = $Player
 @onready var enemy: Enemy = $Enemy
-@onready var label = $Label
 
 @onready var grid_service: GridService = GridService.new()
 @onready var path_service: PathfindingService = PathfindingService.new()
@@ -35,9 +34,6 @@ var obstacles: Array[Obstacle] = [
 ]
 
 func _ready():
-	create_obstacles()
-	_create_chest()
-
 	grid_service.setup(tilemap)
 	path_service.setup(Vector2i(20,20),Vector2(32,32),obstacles)
 	preview_service.setup(grid_service)
@@ -82,6 +78,8 @@ func _ready():
 	combat_system.register_action.connect(register_service.register_event)
 	ai_system.final_decition.connect(_analice_decition)
 
+	_create_chest()
+	create_obstacles()
 	turn_system.start()
 
 func _analice_decition(entity: Being, action: ActionDefinition) -> void:
@@ -90,18 +88,16 @@ func _analice_decition(entity: Being, action: ActionDefinition) -> void:
 	elif action is MoveAction:
 		var to: Array[Vector2i] = [action.position]
 		movement_system.move_unit(entity, to)
-	else:
-		turn_system.end_turn()
+	
+	turn_system.end_turn()
 
 func _on_turn_started(entity: Being):
-	#print(entity.name)	
+	#print(entity.name)
 	VisionSystem.update(entity.vision, entity.c_position, grid_system)
-	hud.setup(entity)
 	if entity is Enemy:
 		ai_system.analice(entity)
-	else:
-		turn += 1
-		hud.update_turn_counter(turn)
+		return
+	hud.setup(entity)
 
 func _on_move_finished() -> void:
 	if hud._current_entity is Enemy:
@@ -118,17 +114,15 @@ func _excecute_action():
 	elif objetive is Chest:
 		container_ui.setup(player.inventory, objetive.inventory, objetive.chest_name)
 		container_ui.open()
-		return
 	elif objetive is Enemy and objetive.is_dead:
 		container_ui.setup(player.inventory, objetive.inventory, "Cadáver de " + objetive.entity_name)
 		container_ui.open()
-		return
 	elif objetive is Entity:
-		if hud._current_entity == player and hud._current_entity.turn.action_points > 0:
+		if hud._current_entity.turn.action_points > 0:
 			hud.spend_action(1)
 			combat_system.attack(player, objetive)
 		return
-	if objetive == null:
+	elif objetive == null:
 		_move_player()
 
 func _move_player():
@@ -136,8 +130,6 @@ func _move_player():
 		movement_system.stop_move()
 		return
 
-	if hud._current_entity != player:
-		return
 	if hud._current_entity.turn.movement_points <= 0:
 		return
 
@@ -152,8 +144,11 @@ func _move_player():
 		var max_steps = mini(path.size(), player.turn.movement_points)
 		steps_to_use = path.slice(0, max_steps)
 
-	hud.spend_movement(steps_to_use.size())
 	movement_system.move_unit(player, steps_to_use)
+	
+	for i in steps_to_use.size():
+		await movement_system.move_finished
+		hud.spend_movement(1)
 	preview_system.clear()
 
 func create_obstacles():
@@ -177,6 +172,7 @@ func _create_chest() -> void:
 	chest.chest_name = "Cofre del Tesoro"
 	var chest_pos := Vector2i(5, 4)
 	chest.c_position.grid_position = chest_pos
+	grid_system.register_entity(chest)
 
 	var club := load("res://Data/Items/club_iron.tres") as ItemDefinition
 	var herb := load("res://Data/Items/herb_health.tres") as ItemDefinition

@@ -40,12 +40,6 @@ func _init() -> void:
 	layout.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	panel.add_child(layout)
 
-	_turn_label = Label.new()
-	_turn_label.add_theme_font_size_override("font_size", 13)
-	_turn_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.8))
-	_turn_label.text = "Turno: 0"
-	layout.add_child(_turn_label)
-
 	var sep1 := VSeparator.new()
 	layout.add_child(sep1)
 
@@ -77,12 +71,9 @@ func _init() -> void:
 	_end_turn_btn.pressed.connect(_on_end_turn_pressed)
 	layout.add_child(_end_turn_btn)
 
-func setup(entity: Being) -> void:
+func setup(entity: Player) -> void:
 	_current_entity = entity
 	_refresh()
-
-func update_turn_counter(turn: int) -> void:
-	_turn_label.text = "Turno: %d" % turn
 
 func _refresh() -> void:
 	if _current_entity == null:

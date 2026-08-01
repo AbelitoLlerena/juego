@@ -9,6 +9,7 @@ func setup(pathfinding: PathfindingService) -> void:
 
 func register_entity(entity:Entity) -> void:
 	occupied[entity.c_position.grid_position] = entity
+	_pathfinding.set_point_solid(entity.c_position.grid_position)
 
 func move_entity(entity:Being, new_cell:Vector2i) -> void:
 	occupied.erase(entity.c_position.grid_position)
