@@ -1,5 +1,5 @@
 class_name TargetDeadCondition
 extends SkillCondition
 
-func chek(context: SkillContext):
+func check(context: SkillEvaluationContext):
 	return context.target.health.is_dead()

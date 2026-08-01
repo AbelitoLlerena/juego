@@ -1,30 +1,6 @@
 class_name AreaService
 extends RefCounted
 
-static func get_skill_area(
-	origin: Vector2i,
-	selected: Vector2i,
-	skill: SkillDefinition
-) -> Array[Vector2i]:
-
-	match typeof(skill):
-		SkillSelf:
-			return circle(origin, skill.radius)
-
-		SkillDefinition:
-			return target(selected)
-
-		SkillCircle:
-			return circle(selected, skill.radius)
-
-		SkillVector:
-			return line(origin, selected, skill.length, skill.width)
-
-		SkillCone:
-			return cone(origin, selected, skill.length, skill.angle)
-
-	return []
-
 static func target(tile: Vector2i) -> Array[Vector2i]:
 	return [tile]
 

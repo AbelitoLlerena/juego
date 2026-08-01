@@ -18,6 +18,7 @@ extends Node2D
 @onready var register_system: RegisterSystem = RegisterSystem.new(register_service)
 @onready var cursor_system: CursorSystem = CursorSystem.new()
 @onready var combat_system: CombatSystem = CombatSystem.new()
+@onready var skill_system: SkillSystem = SkillSystem.new()
 @export var ai_system: AISystem = AISystem.new()
 
 @onready var inventory_ui:InventoryUI = InventoryUI.new()
@@ -43,6 +44,7 @@ func _ready():
 	preview_system.setup(path_system,grid_system,preview_service)
 	movement_system.setup(grid_system, grid_service)
 	cursor_system.setup(grid_service,grid_system)
+	skill_system.setup(grid_system,cursor_system)
 	ai_system.setup(path_system,grid_system)
 
 	add_child(collector)
@@ -87,7 +89,7 @@ func _analice_decition(entity: Being, action: ActionDefinition) -> void:
 		turn_system.end_turn()
 
 func _on_turn_started(entity: Being):
-	print(entity.name)
+	#print(entity.name)
 	VisionSystem.update(entity.vision, entity.c_position, grid_system)
 	if entity is Enemy:
 		ai_system.analice(entity)

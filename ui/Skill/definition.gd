@@ -11,12 +11,5 @@ extends Resource
 @export var mana_cost := 0
 @export var cooldown := 0
 @export var range := 1
-@export var target_type: Array[SkillTargetType.SkillTargetFilter]
-@export var rules : Array[SkillRule]
 
-func set_area(
-	caster_position: Vector2i,
-	caster_faction: FactionComponent,
-	cursor_system: CursorSystem
-) -> Array[Vector2i]:
-	return [caster_position]
+@export var stages: Array[SkillStageDefinition] = []
