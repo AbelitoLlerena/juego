@@ -94,7 +94,7 @@ func _analice_decition(entity: Being, action: ActionDefinition) -> void:
 		turn_system.end_turn()
 
 func _on_turn_started(entity: Being):
-	#print(entity.name)
+	#print(entity.name)	
 	VisionSystem.update(entity.vision, entity.c_position, grid_system)
 	hud.setup(entity)
 	if entity is Enemy:
