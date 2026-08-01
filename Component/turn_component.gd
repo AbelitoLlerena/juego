@@ -6,3 +6,10 @@ extends Resource
 @export var max_action_points:int = 2
 @export var movement_points:int = 6
 @export var max_movement_points:int = 6
+@export var inventory_points:int = 1
+@export var max_inventory_points:int = 1
+
+func reset_points() -> void:
+	action_points = max_action_points
+	movement_points = max_movement_points
+	inventory_points = max_inventory_points
