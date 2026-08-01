@@ -180,8 +180,8 @@ static func _calculate_block(
 	return damage
 
 static func _apply_resistances(context: AttackContext, damage: Dictionary[String,float]) -> Dictionary[String,float]:
-	var damage_physical = damage["physical"] - context.target.stats.resistances["physical"]
-	var damage_magical = damage["magical"] - context.target.stats.resistances["magical"]
+	var damage_physical = damage["physical"] - context.target.stats.resist_physical
+	var damage_magical = damage["magical"] - context.target.stats.resist_magical
 
 	damage["physical"] = max(0, damage_physical)
 	damage["magical"] = max(0, damage_magical)

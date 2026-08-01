@@ -71,7 +71,7 @@ func recalculate_stats(being: Being) -> void:
 		return
 
 	var stats := being.stats
-	if stats._base_stats.is_empty():
+	if not stats._has_base_stats:
 		stats.save_base_stats()
 
 	var modifiers := being.equipment.get_stat_modifiers()
@@ -114,8 +114,17 @@ func recalculate_stats(being: Being) -> void:
 	stats.energy_regeneration = float(stats.get_base_stat("energy_regeneration")) + modifiers.get("energy_regeneration", 0.0)
 	stats.energing_efficiency = float(stats.get_base_stat("energing_efficiency")) + modifiers.get("energing_efficiency", 0.0)
 
-	for resistance_key in stats.resistances:
-		stats.resistances[resistance_key] = int(stats.get_base_stat("resistances").get(resistance_key, 0)) + int(modifiers.get(resistance_key, 0))
+	stats.resist_physical = int(stats.get_base_stat("resist_physical")) + int(modifiers.get("resist_physical", 0))
+	stats.resist_magical = int(stats.get_base_stat("resist_magical")) + int(modifiers.get("resist_magical", 0))
+	stats.resist_mental = int(stats.get_base_stat("resist_mental")) + int(modifiers.get("resist_mental", 0))
+	stats.resist_fire = int(stats.get_base_stat("resist_fire")) + int(modifiers.get("resist_fire", 0))
+	stats.resist_ice = int(stats.get_base_stat("resist_ice")) + int(modifiers.get("resist_ice", 0))
+	stats.resist_holy = int(stats.get_base_stat("resist_holy")) + int(modifiers.get("resist_holy", 0))
+	stats.resist_dark = int(stats.get_base_stat("resist_dark")) + int(modifiers.get("resist_dark", 0))
+	stats.resist_poison = int(stats.get_base_stat("resist_poison")) + int(modifiers.get("resist_poison", 0))
+	stats.resist_bleed = int(stats.get_base_stat("resist_bleed")) + int(modifiers.get("resist_bleed", 0))
+	stats.resist_control = int(stats.get_base_stat("resist_control")) + int(modifiers.get("resist_control", 0))
+	stats.resist_movement = int(stats.get_base_stat("resist_movement")) + int(modifiers.get("resist_movement", 0))
 
 	stats_recalculated.emit(being)
 
