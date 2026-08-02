@@ -114,7 +114,7 @@ func _excecute_action():
 	elif objetive is Chest:
 		container_ui.setup(player.inventory, objetive.inventory, objetive.chest_name)
 		container_ui.open()
-	elif objetive is Enemy and objetive.is_dead:
+	elif objetive is Enemy and objetive.health.is_dead:
 		container_ui.setup(player.inventory, objetive.inventory, "Cadáver de " + objetive.entity_name)
 		container_ui.open()
 	elif objetive is Entity:
