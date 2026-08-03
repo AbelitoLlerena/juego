@@ -2,6 +2,7 @@ extends Node2D
 @onready var tilemap = $Ground
 @onready var player: Player = $Player
 @onready var enemy: Enemy = $Enemy
+@onready var fog: FogOverlay = $Fog
 
 @onready var grid_service: GridService = GridService.new()
 @onready var path_service: PathfindingService = PathfindingService.new()
@@ -25,6 +26,8 @@ extends Node2D
 @onready var container_ui: ContainerUI = ContainerUI.new()
 
 var turn := 0
+
+var _moving_unit: Being = null
 
 var obstacles: Array[Obstacle] = [
 	Obstacle.new_at(Vector2i(1,3)),
@@ -87,20 +90,28 @@ func _analice_decition(entity: Being, action: ActionDefinition) -> void:
 		combat_system.attack(entity, action.target)
 	elif action is MoveAction:
 		var to: Array[Vector2i] = [action.position]
+		_moving_unit = entity
 		movement_system.move_unit(entity, to)
-	
+		return
 	turn_system.end_turn()
 
 func _on_turn_started(entity: Being):
-	#print(entity.name)
 	VisionSystem.update(entity.vision, entity.c_position, grid_system)
+	if entity is Player:
+		_refresh_fog(entity.vision)
 	if entity is Enemy:
 		ai_system.analice(entity)
 		return
 	hud.setup(entity)
 
+func _refresh_fog(vision: VisionComponent) -> void:
+	fog.update_vision(vision.visible_tiles, vision.revealed_tiles)
+
 func _on_move_finished() -> void:
-	if hud._current_entity is Enemy:
+	if _moving_unit is Player:
+		VisionSystem.update(player.vision, player.c_position, grid_system)
+		_refresh_fog(player.vision)
+	if _moving_unit is Enemy:
 		turn_system.end_turn()
 
 func _update_preview(cell: CursorState):
@@ -151,6 +162,7 @@ func _move_player():
 		var max_steps = mini(path.size(), player.turn.movement_points)
 		steps_to_use = path.slice(0, max_steps)
 
+	_moving_unit = player
 	movement_system.move_unit(player, steps_to_use)
 	
 	for i in steps_to_use.size():
@@ -160,6 +172,7 @@ func _move_player():
 
 func create_obstacles():
 	for obs in obstacles:
+		obs.blocks_vision = true
 		var rect := ColorRect.new()
 
 		rect.color = Color.DARK_RED

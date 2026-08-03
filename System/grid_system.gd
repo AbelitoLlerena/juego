@@ -26,3 +26,7 @@ func is_cell_free(cell:Vector2i) -> bool:
 
 func get_entity(cell:Vector2i) -> Entity:
 	return occupied.get(cell)
+
+func blocks_vision(cell: Vector2i) -> bool:
+	var entity := get_entity(cell)
+	return entity is Thing and entity.blocks_vision
