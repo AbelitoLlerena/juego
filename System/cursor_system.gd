@@ -43,3 +43,31 @@ func on_primary_clicked():
 	if !state.is_valid:
 		return
 	primary_click.emit(state)
+
+func get_area_borders(cells: Array[Vector2i]) -> Array[PackedVector2Array]:
+	var cell_set := {}
+	for c in cells:
+		cell_set[c] = true
+
+	var borders: Array[PackedVector2Array] = []
+
+	for cell in cells:
+		var world_pos := _grid_service.grid_to_world(cell)
+		var size := 32
+		var corners := [
+			world_pos,
+			world_pos + Vector2(size, 0),
+			world_pos + Vector2(size,size),
+			world_pos + Vector2(0, size)
+		]
+
+		if !cell_set.has(cell + Vector2i.LEFT):
+			borders.append(PackedVector2Array([corners[0], corners[3]]))
+		if !cell_set.has(cell + Vector2i.RIGHT):
+			borders.append(PackedVector2Array([corners[1], corners[2]]))
+		if !cell_set.has(cell + Vector2i.UP):
+			borders.append(PackedVector2Array([corners[0], corners[1]]))
+		if !cell_set.has(cell + Vector2i.DOWN):
+			borders.append(PackedVector2Array([corners[3], corners[2]]))
+
+	return borders
