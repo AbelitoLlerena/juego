@@ -2,11 +2,10 @@ class_name CursorSystem
 extends  Node
 
 signal cursor_updated(state:CursorState)
-signal primary_click()
+signal primary_click(state:CursorState)
 
 var state := CursorState.new()
-var condition: ConditionDefinition = AlwaysCondition.new()
-var invalid_tile:bool = false
+var condition: ConditionDefinition = AlwaysCondition.new() #CellFreeCondition.new()
 var cursor_mesage:String = ""
 
 @onready var _grid_service: GridService
@@ -26,19 +25,21 @@ func on_mouse_moved(world_position: Vector2):
 	var context = CursorContext.new()
 	context.player = _player
 	context.cursor = state
-	if !condition.check(context):
-		invalid_tile = true
+	if condition.check(context):
+		state.is_valid = true
+		cursor_updated.emit(state)
+	else:
+		state.is_valid = false
 		cursor_mesage = "Invalid tile"
-
-	cursor_updated.emit(state)
+		cursor_updated.emit(state)
 
 func push_condition(condition: ConditionDefinition) -> void:
 	self.condition = condition
 
 func pop_condition() -> void:
-	condition = AlwaysCondition.new()
+	condition = AlwaysCondition.new() #CellFreeCondition.new()
 
 func on_primary_clicked():
-	if invalid_tile:
+	if !state.is_valid:
 		return
-	primary_click.emit()
+	primary_click.emit(state)

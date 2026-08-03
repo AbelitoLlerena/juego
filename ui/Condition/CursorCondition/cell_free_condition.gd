@@ -1,5 +1,6 @@
 class_name CellFreeCondition
-extends ExistCondition
+extends NotCondition
 
 func  _init() -> void:
-	entity_selector = HoveredEntitySelector.new()
+	condition = ExistCondition.new()
+	condition.entity_selector = HoveredEntitySelector.new()

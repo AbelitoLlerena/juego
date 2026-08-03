@@ -106,22 +106,29 @@ func _on_move_finished() -> void:
 func _update_preview(cell: CursorState):
 	if !movement_system.is_moving and cell.hovered_entity == null:
 		preview_system.update_preview(player,cell.grid_position)
+	else:
+		preview_system.clear()
 
-func _excecute_action():
-	var objetive = cursor_system.state.hovered_entity
+func _excecute_action(state: CursorState):
+	var objetive = state.hovered_entity
 	if objetive is Player:
 		return
 	elif objetive is Chest:
 		container_ui.setup(player.inventory, objetive.inventory, objetive.chest_name)
 		container_ui.open()
-	elif objetive is Enemy and objetive.is_dead:
-		container_ui.setup(player.inventory, objetive.inventory, "Cadáver de " + objetive.entity_name)
-		container_ui.open()
+	elif objetive is Enemy:
+		if objetive.health.is_dead:
+			container_ui.setup(player.inventory, objetive.inventory, "Cadáver de " + objetive.entity_name)
+			container_ui.open()
+		elif DistanceService.distance(
+			player.c_position.grid_position,
+			state.grid_position
+		) <= player.stats.range:
+			combat_system.attack(player, objetive)
 	elif objetive is Entity:
 		if hud._current_entity.turn.action_points > 0:
 			hud.spend_action(1)
 			combat_system.attack(player, objetive)
-		return
 	elif objetive == null:
 		_move_player()
 
