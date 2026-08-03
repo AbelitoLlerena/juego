@@ -41,7 +41,7 @@ func _ready():
 	grid_system.setup(path_service)
 	preview_system.setup(path_system,grid_system,preview_service)
 	movement_system.setup(grid_system, grid_service)
-	cursor_system.setup(grid_service,grid_system)
+	cursor_system.setup(grid_service,grid_system,player)
 	skill_system.setup(grid_system,cursor_system)
 	ai_system.setup(path_system,grid_system)
 

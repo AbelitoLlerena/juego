@@ -9,19 +9,24 @@ var condition: ConditionDefinition = AlwaysCondition.new()
 var invalid_tile:bool = false
 var cursor_mesage:String = ""
 
-@onready var grid_service: GridService
-@onready var grid_system: GridSystem
+@onready var _grid_service: GridService
+@onready var _grid_system: GridSystem
+@onready var _player: Player
 
-func setup(grid_service:GridService, grid_system:GridSystem):
-	self.grid_service = grid_service
-	self.grid_system = grid_system
+func setup(grid_service:GridService, grid_system:GridSystem, player:Player):
+	_grid_service = grid_service
+	_grid_system = grid_system
+	_player = player
 
 func on_mouse_moved(world_position: Vector2):
 	state.world_position = world_position
-	state.grid_position = grid_service.world_to_grid(world_position)
-	state.hovered_entity = grid_system.get_entity(state.grid_position)
+	state.grid_position = _grid_service.world_to_grid(world_position)
+	state.hovered_entity = _grid_system.get_entity(state.grid_position)
 
-	if !condition.check(state):
+	var context = CursorContext.new()
+	context.player = _player
+	context.cursor = state
+	if !condition.check(context):
 		invalid_tile = true
 		cursor_mesage = "Invalid tile"
 
