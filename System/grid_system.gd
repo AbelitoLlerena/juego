@@ -3,6 +3,7 @@ extends Node
 
 @export var _pathfinding: PathfindingService
 var occupied := {}
+var surfaces := {}
 
 func setup(pathfinding: PathfindingService) -> void:
 	_pathfinding = pathfinding
@@ -29,4 +30,16 @@ func get_entity(cell:Vector2i) -> Entity:
 
 func blocks_vision(cell: Vector2i) -> bool:
 	var entity := get_entity(cell)
-	return entity is Thing and entity.blocks_vision
+	if entity is Thing and entity.blocks_vision:
+		return true
+	var surface := get_surface(cell)
+	return surface is Surface and surface.blocks_vision
+
+func register_surface(surface: Surface) -> void:
+	surfaces[surface.c_position.grid_position] = surface
+
+func unregister_surface(cell: Vector2i) -> void:
+	surfaces.erase(cell)
+
+func get_surface(cell: Vector2i) -> Surface:
+	return surfaces.get(cell)

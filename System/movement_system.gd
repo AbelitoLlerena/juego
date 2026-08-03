@@ -25,6 +25,7 @@ func move_unit(unit: Being, path: Array[Vector2i]) -> void:
 			return
 
 		_grid_system.move_entity(unit, cell)
+		unit.on_ground(_grid_system)
 		var target_pos: Vector2 = _grid_service.grid_to_world(cell)
 
 		var tween := create_tween()

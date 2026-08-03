@@ -36,6 +36,15 @@ var obstacles: Array[Obstacle] = [
 	Obstacle.new_at(Vector2i(0,4))
 ]
 
+var surfaces: Array[Surface] = [
+	Surface.new_surface(Surface.Type.SMOKE, Vector2i(4,2)),
+	Surface.new_surface(Surface.Type.WATER_VAPOR, Vector2i(6,3)),
+	Surface.new_surface(Surface.Type.POISON_CLOUD, Vector2i(8,2)),
+	Surface.new_surface(Surface.Type.POISON_PUDDLE, Vector2i(7,6)),
+	Surface.new_surface(Surface.Type.WATER_PUDDLE, Vector2i(3,6)),
+	Surface.new_surface(Surface.Type.MUD, Vector2i(5,5))
+]
+
 func _ready():
 	grid_service.setup(tilemap)
 	path_service.setup(Vector2i(20,20),Vector2(32,32),obstacles)
@@ -83,6 +92,7 @@ func _ready():
 
 	_create_chest()
 	create_obstacles()
+	create_surfaces()
 	turn_system.start()
 
 func _analice_decition(entity: Being, action: ActionDefinition) -> void:
@@ -185,6 +195,21 @@ func create_obstacles():
 
 		add_child(rect)
 		grid_system.register_entity(obs)
+
+func create_surfaces():
+	for s in surfaces:
+		var rect := ColorRect.new()
+
+		rect.color = s.color()
+		rect.size = Vector2(32, 32)
+		rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+		rect.position = (
+			Vector2(s.c_position.grid_position) * 32
+		)
+
+		add_child(rect)
+		grid_system.register_surface(s)
 
 func _create_chest() -> void:
 	var chest := Chest.new()

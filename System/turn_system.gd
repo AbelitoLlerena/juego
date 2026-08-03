@@ -33,6 +33,7 @@ func start_turn() -> void:
 
 func end_turn():
 	HealthSystem.process_turn(current_entity)
+	StatusSystem.process_turn(current_entity)
 	_apply_variance()
 	turn_finished.emit(current_entity)
 	next_turn()
