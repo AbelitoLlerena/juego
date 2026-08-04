@@ -122,8 +122,23 @@ func _add_stat(name: String, value: String) -> void:
 	_stats_grid.add_child(value_label)
 
 func setup(being: Being) -> void:
+	if _being != null and _being.effect.effects_changed.is_connected(_on_effects_changed):
+		_being.effect.effects_changed.disconnect(_on_effects_changed)
+	if _being != null and _being.health.health_changed.is_connected(_on_health_changed):
+		_being.health.health_changed.disconnect(_on_health_changed)
+
 	_being = being
+	_being.effect.effects_changed.connect(_on_effects_changed)
+	_being.health.health_changed.connect(_on_health_changed)
 	_refresh()
+
+func _on_effects_changed() -> void:
+	if _is_open:
+		_refresh()
+
+func _on_health_changed(_current: int, _maximum: int) -> void:
+	if _is_open:
+		_refresh()
 
 func _refresh() -> void:
 	if _being == null:
@@ -164,30 +179,31 @@ func _refresh() -> void:
 	for child in _status_box.get_children():
 		child.free()
 
-	var statuses := _being.status.get_active_statuses()
-	if statuses.is_empty():
+	var effects := _being.effect.effects
+	if effects.is_empty():
 		var none := Label.new()
 		none.text = "Ninguno"
 		none.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
 		_status_box.add_child(none)
 	else:
-		for entry in statuses:
+		for instance in effects:
 			var status_label := Label.new()
-			status_label.text = "%s  (x%d, %d turnos)" % [
-				StatusComponent.type_name(entry["type"]),
-				entry["stacks"],
-				entry["remaining_turns"]
+			var turns := "∞" if instance.remaining_turns < 0 else str(instance.remaining_turns)
+			status_label.text = "%s  (x%d, %s turnos)" % [
+				instance.definition.display_name,
+				instance.stacks,
+				turns
 			]
-			status_label.add_theme_color_override("font_color", _status_color(entry["type"]))
+			status_label.add_theme_color_override("font_color", _status_color(instance.definition.id))
 			_status_box.add_child(status_label)
 
-func _status_color(type: int) -> Color:
-	match type:
-		StatusComponent.Type.POISON:
+func _status_color(id: StringName) -> Color:
+	match id:
+		&"poison":
 			return Color(0.4, 0.9, 0.4)
-		StatusComponent.Type.BURN:
+		&"burn":
 			return Color(1.0, 0.5, 0.2)
-		StatusComponent.Type.SLOWED:
+		&"slowed":
 			return Color(0.5, 0.7, 1.0)
 	return Color.WHITE
 

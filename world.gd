@@ -25,6 +25,7 @@ extends Node2D
 @onready var hud: HUD = HUD.new()
 @onready var container_ui: ContainerUI = ContainerUI.new()
 @onready var character_panel: CharacterPanelUI = CharacterPanelUI.new()
+@onready var surface_label: Label = _create_surface_label()
 
 var turn := 0
 
@@ -43,7 +44,9 @@ var surfaces: Array[Surface] = [
 	Surface.new_surface(Surface.Type.POISON_CLOUD, Vector2i(8,2)),
 	Surface.new_surface(Surface.Type.POISON_PUDDLE, Vector2i(7,6)),
 	Surface.new_surface(Surface.Type.WATER_PUDDLE, Vector2i(3,6)),
-	Surface.new_surface(Surface.Type.MUD, Vector2i(5,5))
+	Surface.new_surface(Surface.Type.MUD, Vector2i(5,5)),
+	Surface.new_surface(Surface.Type.FIRE, Vector2i(9,3)),
+	Surface.new_surface(Surface.Type.MUD, Vector2i(4,6))
 ]
 
 func _ready():
@@ -88,6 +91,7 @@ func _ready():
 	collector.mouse_moved.connect(cursor_system.on_mouse_moved)
 	collector.primary_clicked.connect(cursor_system.on_primary_clicked)
 	cursor_system.cursor_updated.connect(_update_preview)
+	cursor_system.cursor_updated.connect(_update_surface_label)
 	cursor_system.primary_click.connect(_excecute_action)
 	register_service.update.connect(register_system.update_logs)
 	combat_system.register_action.connect(register_service.register_event)
@@ -132,6 +136,25 @@ func _update_preview(cell: CursorState):
 		preview_system.update_preview(player,cell.grid_position)
 	else:
 		preview_system.clear()
+
+func _create_surface_label() -> Label:
+	var label := Label.new()
+	label.add_theme_color_override("font_color", Color.WHITE)
+	label.add_theme_color_override("font_outline_color", Color.BLACK)
+	label.add_theme_constant_override("outline_size", 4)
+	label.visible = false
+	label.z_index = 100
+	add_child(label)
+	return label
+
+func _update_surface_label(state: CursorState) -> void:
+	var surface := grid_system.get_surface(state.grid_position)
+	if surface == null:
+		surface_label.visible = false
+		return
+	surface_label.text = surface.entity_name
+	surface_label.global_position = grid_service.grid_to_world(state.grid_position) + Vector2(0, 24)
+	surface_label.visible = true
 
 func _excecute_action(state: CursorState):
 	var objetive = state.hovered_entity

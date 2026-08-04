@@ -7,13 +7,14 @@ enum Type {
 	POISON_CLOUD,
 	POISON_PUDDLE,
 	WATER_PUDDLE,
-	MUD
+	MUD,
+	FIRE
 }
 
 @export var type: Type = Type.WATER_PUDDLE
-@export var status_type: int = -1
-@export var status_stacks: int = 0
-@export var status_duration: int = 3
+@export var effect_definition: EffectDefinition = null
+@export var effect_stacks: int = 0
+@export var effect_duration: int = 3
 
 static func new_surface(surface_type: Type, cell: Vector2i) -> Surface:
 	var s := Surface.new()
@@ -25,22 +26,30 @@ static func new_surface(surface_type: Type, cell: Vector2i) -> Surface:
 		Type.WATER_VAPOR,
 		Type.POISON_CLOUD
 	]
-	s.status_type = base_status_type(surface_type)
-	s.status_stacks = base_status_stacks(surface_type)
+	s.effect_definition = base_effect(surface_type)
+	s.effect_stacks = base_effect_stacks(surface_type)
 	return s
 
-static func base_status_type(surface_type: Type) -> int:
+static func base_effect(surface_type: Type) -> EffectDefinition:
 	match surface_type:
 		Type.POISON_PUDDLE, Type.POISON_CLOUD:
-			return StatusComponent.Type.POISON
-	return -1
+			return StatusEffects.poison()
+		Type.FIRE:
+			return StatusEffects.burn()
+		Type.MUD:
+			return StatusEffects.slowed()
+	return null
 
-static func base_status_stacks(surface_type: Type) -> int:
+static func base_effect_stacks(surface_type: Type) -> int:
 	match surface_type:
 		Type.POISON_PUDDLE:
 			return 5
 		Type.POISON_CLOUD:
 			return 3
+		Type.FIRE:
+			return 2
+		Type.MUD:
+			return 1
 	return 0
 
 static func type_name(surface_type: Type) -> String:
@@ -56,7 +65,9 @@ static func type_name(surface_type: Type) -> String:
 		Type.WATER_PUDDLE:
 			return "Charco de agua"
 		Type.MUD:
-			return "Lodo"
+			return "Charco de barro"
+		Type.FIRE:
+			return "Fuego"
 	return "Superficie"
 
 func color() -> Color:
@@ -73,4 +84,6 @@ func color() -> Color:
 			return Color(0.3, 0.5, 0.9, 0.8)
 		Type.MUD:
 			return Color(0.55, 0.4, 0.22, 0.9)
+		Type.FIRE:
+			return Color(1.0, 0.4, 0.1, 0.9)
 	return Color.WHITE

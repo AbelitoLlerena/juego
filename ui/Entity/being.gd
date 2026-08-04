@@ -10,7 +10,6 @@ extends Entity
 @export var turn : TurnComponent
 @export var vision : VisionComponent
 @export var effect : EffectComponent
-@export var status : StatusComponent
 
 func _init() -> void:
 	super._init()
@@ -24,16 +23,17 @@ func _init() -> void:
 	turn = TurnComponent.new()
 	vision = VisionComponent.new()
 	effect = EffectComponent.new()
-	status = StatusComponent.new()
 
 func on_ground(grid: GridSystem) -> void:
 	var surface := grid.get_surface(c_position.grid_position)
-	if surface == null:
+	if surface == null or surface.effect_definition == null:
 		return
-	if surface.status_type < 0:
-		return
-	status.apply(
-		surface.status_type,
-		surface.status_stacks,
-		surface.status_duration
+	var context := EffectContext.new()
+	context.bearer = self
+	EffectSystem.add_effect(
+		effect,
+		surface.effect_definition,
+		context,
+		surface.effect_stacks,
+		surface.effect_duration
 	)

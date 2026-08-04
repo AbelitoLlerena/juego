@@ -51,7 +51,10 @@ func process_attack(context: AttackContext) -> void:
 	_dispatch_events(context)
 	
 	for effect in context.result.effects:
-		_apply_effects(context.target.effects,effect)
+		if context.target is Being:
+			var effect_context := EffectContext.new()
+			effect_context.bearer = context.target
+			EffectSystem.add_effect(context.target.effect, effect, effect_context)
 
 	var a = context.attacker.name
 	var b = context.target.name
@@ -111,9 +114,6 @@ func _spend_energy(target:EnergyComponent,amount:int) -> void:
 		return
 
 	HealthSystem.spend_energy(target,amount)
-
-func _apply_effects(target:EffectComponent,effect:EffectDefinition) -> void:
-	EffectSystem.add_effect(target,effect)
 
 func _mofify_stat(
 	target:StatsComponent,
