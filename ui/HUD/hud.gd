@@ -8,6 +8,8 @@ var _mp_label: Label
 var _ip_label: Label
 var _end_turn_btn: Button
 var _turn_label: Label
+var _hp_label: Label
+var _hp_bar: ProgressBar
 
 var _current_entity: Being = null
 
@@ -39,6 +41,42 @@ func _init() -> void:
 	layout.alignment = BoxContainer.ALIGNMENT_CENTER
 	layout.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	panel.add_child(layout)
+
+	var hp_box := VBoxContainer.new()
+	hp_box.custom_minimum_size = Vector2(120, 0)
+	hp_box.alignment = BoxContainer.ALIGNMENT_CENTER
+	layout.add_child(hp_box)
+
+	_hp_label = Label.new()
+	_hp_label.add_theme_font_size_override("font_size", 12)
+	_hp_label.add_theme_color_override("font_color", Color.WHITE)
+	_hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_hp_label.text = "HP: 0/0"
+	hp_box.add_child(_hp_label)
+
+	_hp_bar = ProgressBar.new()
+	_hp_bar.custom_minimum_size = Vector2(120, 14)
+	_hp_bar.show_percentage = false
+	_hp_bar.max_value = 100
+	_hp_bar.value = 100
+
+	var hp_bg := StyleBoxFlat.new()
+	hp_bg.bg_color = Color(0.45, 0.05, 0.05)
+	hp_bg.corner_radius_top_left = 3
+	hp_bg.corner_radius_top_right = 3
+	hp_bg.corner_radius_bottom_left = 3
+	hp_bg.corner_radius_bottom_right = 3
+	_hp_bar.add_theme_stylebox_override("background", hp_bg)
+
+	var hp_fill := StyleBoxFlat.new()
+	hp_fill.bg_color = Color(0.2, 0.8, 0.3)
+	hp_fill.corner_radius_top_left = 3
+	hp_fill.corner_radius_top_right = 3
+	hp_fill.corner_radius_bottom_left = 3
+	hp_fill.corner_radius_bottom_right = 3
+	_hp_bar.add_theme_stylebox_override("fill", hp_fill)
+
+	hp_box.add_child(_hp_bar)
 
 	var sep1 := VSeparator.new()
 	layout.add_child(sep1)
@@ -73,6 +111,12 @@ func _init() -> void:
 
 func setup(entity: Player) -> void:
 	_current_entity = entity
+	if is_instance_valid(_current_entity) and _current_entity.health.health_changed.is_connected(_on_health_changed):
+		_current_entity.health.health_changed.disconnect(_on_health_changed)
+	_current_entity.health.health_changed.connect(_on_health_changed)
+	_refresh()
+
+func _on_health_changed(_current: int, _maximum: int) -> void:
 	_refresh()
 
 func _refresh() -> void:
@@ -83,6 +127,11 @@ func _refresh() -> void:
 	_ap_label.text = "AP: %d/%d" % [t.action_points, t.max_action_points]
 	_mp_label.text = "MP: %d/%d" % [t.movement_points, t.max_movement_points]
 	_ip_label.text = "IP: %d/%d" % [t.inventory_points, t.max_inventory_points]
+
+	var h := _current_entity.health
+	_hp_bar.max_value = h.max_health
+	_hp_bar.value = h.health
+	_hp_label.text = "HP: %d/%d" % [h.health, h.max_health]
 
 func spend_action(points: int = 1) -> void:
 	if _current_entity == null:

@@ -41,6 +41,27 @@ func remove(type: Type) -> void:
 func clear() -> void:
 	_status.clear()
 
+func get_active_statuses() -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for type in _status.keys():
+		var entry: Dictionary = _status[type]
+		result.append({
+			"type": type,
+			"stacks": int(entry.get("stacks", 0)),
+			"remaining_turns": int(entry.get("remaining_turns", 0))
+		})
+	return result
+
+static func type_name(type: Type) -> String:
+	match type:
+		Type.POISON:
+			return "Veneno"
+		Type.SLOWED:
+			return "Ralentizado"
+		Type.BURN:
+			return "Quemadura"
+	return "Desconocido"
+
 # Efectos de los estados cada turno. Devuelve el daño total aplicado.
 func process_turn(being: Being) -> int:
 	var total := 0

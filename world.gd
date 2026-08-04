@@ -24,6 +24,7 @@ extends Node2D
 @onready var collector: InputCollector = InputCollector.new()
 @onready var hud: HUD = HUD.new()
 @onready var container_ui: ContainerUI = ContainerUI.new()
+@onready var character_panel: CharacterPanelUI = CharacterPanelUI.new()
 
 var turn := 0
 
@@ -64,6 +65,7 @@ func _ready():
 	add_child(inventory_ui)
 	add_child(hud)
 	add_child(container_ui)
+	add_child(character_panel)
 	register_system.position = Vector2(20, 240)
 
 	player.initialice()
@@ -77,6 +79,7 @@ func _ready():
 
 	inventory_ui.setup(player)
 	hud.setup(player)
+	character_panel.setup(player)
 	_add_test_items()
 
 	turn_system.turn_started.connect(_on_turn_started)
