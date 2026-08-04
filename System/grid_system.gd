@@ -22,6 +22,13 @@ func move_entity(entity:Being, new_cell:Vector2i) -> void:
 	occupied[new_cell] = entity
 	_pathfinding.set_point_solid(new_cell)
 
+func unregister_entity(entity:Entity) -> void:
+	occupied.erase(entity.c_position.grid_position)
+	_pathfinding.set_point_solid(
+		entity.c_position.grid_position,
+		false
+	)
+
 func is_cell_free(cell:Vector2i) -> bool:
 	return !occupied.has(cell)
 

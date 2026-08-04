@@ -70,6 +70,17 @@ static func type_name(surface_type: Type) -> String:
 			return "Fuego"
 	return "Superficie"
 
+static func type_from_name(type_name: String) -> Type:
+	match type_name.to_lower().strip_edges():
+		"smoke": return Type.SMOKE
+		"water_vapor": return Type.WATER_VAPOR
+		"poison_cloud": return Type.POISON_CLOUD
+		"poison_puddle": return Type.POISON_PUDDLE
+		"water_puddle": return Type.WATER_PUDDLE
+		"mud": return Type.MUD
+		"fire": return Type.FIRE
+	return Type.WATER_PUDDLE
+
 func color() -> Color:
 	match type:
 		Type.SMOKE:

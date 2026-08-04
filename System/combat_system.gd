@@ -16,13 +16,12 @@ func attack(
 	var context := AttackContext.new()
 
 	context.attacker = attacker
-	
+	context.target = target
+
 	if target is Thing:
-		context.target = Being.new()
 		AttackSystem.attack_thing(context)
 		
 	else:
-		context.target = target
 		AttackSystem.attack_being(context)
 
 	process_attack(context)
