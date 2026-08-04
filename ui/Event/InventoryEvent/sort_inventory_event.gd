@@ -1,0 +1,2 @@
+class_name SortInventoryEvent
+extends InventoryEvent

@@ -68,7 +68,12 @@ static func revive(
 	health: HealthComponent,
 	amount := 1
 ) -> void:
+	if not health.is_dead:
+		return
 	health.set_health(clampi(amount, 1, health.max_health))
+
+static func kill(target: HealthComponent):
+	target.set_health(0)
 
 static func refill(
 	health: HealthComponent,

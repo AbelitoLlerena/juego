@@ -7,7 +7,6 @@ static func add_effect(
 	context: EffectContext = null
 ) -> void:
 	
-	# Buscar si ya existe
 	for effect in component.effects:
 		if effect.definition == definition:
 			add_stacks(component, effect, 1, context)

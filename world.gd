@@ -84,10 +84,9 @@ func _ready():
 
 func _analice_decition(entity: Being, action: ActionDefinition) -> void:
 	if action is AttackAction:
-		combat_system.attack(entity, action.target)
+		combat_system.attack_event(entity, action.target)
 	elif action is MoveAction:
-		var to: Array[Vector2i] = [action.position]
-		movement_system.move_unit(entity, to)
+		movement_system.walk_event(entity, action.position)
 	
 	turn_system.end_turn()
 
@@ -123,18 +122,19 @@ func _excecute_action(state: CursorState):
 		elif DistanceService.distance(
 			player.c_position.grid_position,
 			state.grid_position
-		) <= player.stats.range:
-			combat_system.attack(player, objetive)
+		) <= player.stats.range and player.turn.action_points > 0:
+			combat_system.attack_event(player, objetive)
+			hud.spend_action()
 	elif objetive is Entity:
 		if hud._current_entity.turn.action_points > 0:
 			hud.spend_action(1)
-			combat_system.attack(player, objetive)
+			combat_system.attack_event(player, objetive)
 	elif objetive == null:
 		_move_player()
 
 func _move_player():
 	if movement_system.is_moving:
-		movement_system.stop_move()
+		movement_system.stop_movement_event()
 		return
 
 	if hud._current_entity.turn.movement_points <= 0:
@@ -151,7 +151,7 @@ func _move_player():
 		var max_steps = mini(path.size(), player.turn.movement_points)
 		steps_to_use = path.slice(0, max_steps)
 
-	movement_system.move_unit(player, steps_to_use)
+	movement_system.follow_path_event(player, steps_to_use)
 	
 	for i in steps_to_use.size():
 		await movement_system.move_finished

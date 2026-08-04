@@ -7,6 +7,7 @@ var evaded := false
 var blocked := false
 var critical := false
 var reaction := false
+var opportunity := false
 
 var physical_damage := 0
 var magical_damage := 0
