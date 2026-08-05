@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://d4h545gfgde5n"]
+
+[ext_resource type="Script" uid="uid://lc3q5p4ddh0q" path="res://world.gd" id="1_ic0uy"]
+[ext_resource type="PackedScene" uid="uid://bko17wyjkmcby" path="res://Scence/ground.tscn" id="10_eu1js"]
+[ext_resource type="PackedScene" uid="uid://dimlnkst4n5sg" path="res://Scence/player.tscn" id="11_j3d65"]
+[ext_resource type="PackedScene" uid="uid://b8kii5pef682e" path="res://Scence/enemy.tscn" id="12_j3d65"]
+
+[node name="World" type="Node2D" unique_id=748687561]
+script = ExtResource("1_ic0uy")
+
+[node name="Label" type="Label" parent="." unique_id=389993598]
+offset_left = 389.0
+offset_top = 1.0
+offset_right = 429.0
+offset_bottom = 24.0
+
+[node name="Ground" parent="." unique_id=806602243 instance=ExtResource("10_eu1js")]
+
+[node name="Player" parent="." unique_id=2031240851 instance=ExtResource("11_j3d65")]
+
+[node name="Enemy" parent="." unique_id=2055305304 instance=ExtResource("12_j3d65")]

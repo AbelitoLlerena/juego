@@ -17,7 +17,8 @@ extends Node2D
 @onready var cursor_system: CursorSystem = CursorSystem.new()
 @onready var combat_system: CombatSystem = CombatSystem.new()
 @onready var skill_system: SkillSystem = SkillSystem.new()
-@export var ai_system: AISystem = AISystem.new()
+@onready var ai_system: AISystem = AISystem.new()
+@onready var animation_system: AnimationSystem = AnimationSystem.new()
 
 @onready var inventory_ui:InventoryUI = InventoryUI.new()
 @onready var collector: InputCollector = InputCollector.new()
@@ -40,7 +41,7 @@ func _ready():
 	path_system.setup(path_service)
 	grid_system.setup(path_service)
 	preview_system.setup(path_system,grid_system,preview_service)
-	movement_system.setup(grid_system, grid_service)
+	movement_system.setup(grid_system, grid_service, animation_system)
 	cursor_system.setup(grid_service,grid_system,player)
 	skill_system.setup(grid_system,cursor_system)
 	ai_system.setup(path_system,grid_system)
@@ -48,6 +49,7 @@ func _ready():
 	add_child(collector)
 	add_child(preview_service)
 	add_child(movement_system)
+	add_child(animation_system)
 	add_child(register_system)
 	add_child(inventory_ui)
 	add_child(hud)
@@ -64,12 +66,11 @@ func _ready():
 	turn_system.register(enemy)
 
 	inventory_ui.setup(player)
-	hud.setup(player)
 	_add_test_items()
 
 	turn_system.turn_started.connect(_on_turn_started)
 	hud.end_turn_pressed.connect(turn_system.end_turn)
-	movement_system.move_finished.connect(_on_move_finished)
+	#movement_system.move_finished.connect()
 	collector.mouse_moved.connect(cursor_system.on_mouse_moved)
 	collector.primary_clicked.connect(cursor_system.on_primary_clicked)
 	cursor_system.cursor_updated.connect(_update_preview)
@@ -77,30 +78,31 @@ func _ready():
 	register_service.update.connect(register_system.update_logs)
 	combat_system.register_action.connect(register_service.register_event)
 	ai_system.final_decition.connect(_analice_decition)
+	player.turn.update_points.connect(hud.refresh)
 
 	_create_chest()
 	create_obstacles()
+	hud.refresh(player.turn)
+
 	turn_system.start()
 
-func _analice_decition(entity: Being, action: ActionDefinition) -> void:
-	if action is AttackAction:
-		combat_system.attack_event(entity, action.target)
-	elif action is MoveAction:
-		movement_system.walk_event(entity, action.position)
-	
-	turn_system.end_turn()
+func _analice_decition(event: EventDefinition) -> void:
+	if event is CombatEvent:
+		event.system = combat_system
+	elif event is MoveEvent:
+		event.system = movement_system
+	elif event is TurnEvent:
+		event.system = turn_system
+
+	await event.execute()
+	if event is not EndTurnEvent:
+		_on_turn_started(turn_system.current_entity)
 
 func _on_turn_started(entity: Being):
 	#print(entity.name)
 	VisionSystem.update(entity.vision, entity.c_position, grid_system)
 	if entity is Enemy:
 		ai_system.analice(entity)
-		return
-	hud.setup(entity)
-
-func _on_move_finished() -> void:
-	if hud._current_entity is Enemy:
-		turn_system.end_turn()
 
 func _update_preview(cell: CursorState):
 	if !movement_system.is_moving and cell.hovered_entity == null:
@@ -110,6 +112,7 @@ func _update_preview(cell: CursorState):
 
 func _excecute_action(state: CursorState):
 	var objetive = state.hovered_entity
+	var event: EventDefinition
 	if objetive is Player:
 		return
 	elif objetive is Chest:
@@ -123,12 +126,19 @@ func _excecute_action(state: CursorState):
 			player.c_position.grid_position,
 			state.grid_position
 		) <= player.stats.range and player.turn.action_points > 0:
-			combat_system.attack_event(player, objetive)
-			hud.spend_action()
-	elif objetive is Entity:
-		if hud._current_entity.turn.action_points > 0:
-			hud.spend_action(1)
-			combat_system.attack_event(player, objetive)
+			event = AttackEvent.new()
+			event.attacker = player
+			event.target = objetive
+			_analice_decition(event)
+	elif objetive is Entity and \
+		DistanceService.distance(
+			player.c_position.grid_position,
+			state.grid_position
+		) <= player.stats.range and player.turn.action_points > 0:
+			event = AttackEvent.new()
+			event.attacker = player
+			event.target = objetive
+			_analice_decition(event)
 	elif objetive == null:
 		_move_player()
 
@@ -137,25 +147,21 @@ func _move_player():
 		movement_system.stop_movement_event()
 		return
 
-	if hud._current_entity.turn.movement_points <= 0:
-		return
-
 	var path = preview_system.get_preview()
 	if path.is_empty():
 		return
 
-	var steps_to_use: Array[Vector2i]
+	var event: EventDefinition
 	if player.combating:
-		steps_to_use = [path[0]]
+		event = WalkEvent.new()
+		event.entity = player
+		event.destination = path[0]
 	else:
-		var max_steps = mini(path.size(), player.turn.movement_points)
-		steps_to_use = path.slice(0, max_steps)
+		event = FollowPathEvent.new()
+		event.entity = player
+		event.path = path
 
-	movement_system.follow_path_event(player, steps_to_use)
-	
-	for i in steps_to_use.size():
-		await movement_system.move_finished
-		hud.spend_movement(1)
+	_analice_decition(event)
 	preview_system.clear()
 
 func create_obstacles():

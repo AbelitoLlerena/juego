@@ -20,6 +20,7 @@ func attack_event(attacker: Being, target: Entity) -> void:
 		context.target = target
 		AttackSystem.attack_being(context)
 
+	attacker.turn.consuming_point(TurnComponent.TypePoint.ACTION)
 	_process_attack(context)
 
 func counter_attack_event(attacker: Being, target: Being) -> void:
@@ -46,11 +47,11 @@ func opportunity_attack_event(attacker: Being, target: Being) -> void:
 
 	_process_attack(context)
 
-func deal_damage_event(target: HealthComponent, damage: int) -> void:
-	_apply_damage(target, damage)
+func deal_damage_event(target: Being, damage: int) -> void:
+	_apply_damage(target.health, damage)
 
-func heal_event(target: HealthComponent, amount: int) -> void:
-	_apply_heal(target, amount)
+func heal_event(target: Being, amount: int) -> void:
+	_apply_heal(target.health, amount)
 
 func kill_event(target: Being) -> void:
 	if target.health.current_health > 0:
@@ -64,11 +65,11 @@ func revive_event(target: Being, health: int = 1) -> void:
 	)
 
 func redirect_damage_event(
-	source: HealthComponent,
-	target: HealthComponent,
-	damage: int
+	target: Entity,
+	attack: AttackContext
 ) -> void:
-	_apply_damage(target, damage)
+	attack.target = target
+	_process_attack(attack)
 
 func split_damage_event(
 	targets: Array[HealthComponent],

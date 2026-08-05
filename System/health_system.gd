@@ -10,9 +10,9 @@ static func apply_damage(
 	if amount <= 0:
 		return 0
 
-	var previous := health.health
-	health.set_health(health.health - amount)
-	return previous - health.health
+	var previous := health.current
+	health.set_health(health.current - amount)
+	return previous - health.current
 
 static func heal(
 	health: HealthComponent,
@@ -21,9 +21,9 @@ static func heal(
 	if amount <= 0:
 		return 0
 
-	var previous := health.health
-	health.set_health(health.health + amount)
-	return health.health - previous
+	var previous := health.current
+	health.set_health(health.current + amount)
+	return health.current - previous
 
 static func spend_energy(
 	energy: EnergyComponent,
@@ -32,10 +32,11 @@ static func spend_energy(
 	if amount <= 0:
 		return true
 
-	if energy.energy < amount:
+	if energy.current < amount:
 		return false
 
-	energy.energy -= amount
+	var previous := energy.current
+	energy.set_health(energy.current - amount)
 	return true
 
 static func restore_energy(
@@ -45,24 +46,20 @@ static func restore_energy(
 	if amount <= 0:
 		return 0
 
-	var previous := energy.energy
-
-	energy.energy = min(
-		energy.max_energy,
-		energy.energy + amount
-	)
+	var previous := energy.current
+	energy.set_energy(previous + amount)
 
 	return energy.energy - previous
 
 static func is_alive(
 	health: HealthComponent
 ) -> bool:
-	return health.health > 0
+	return not health.is_dead
 
 static func is_dead(
 	health: HealthComponent
 ) -> bool:
-	return health.health <= 0
+	return health.is_dead
 
 static func revive(
 	health: HealthComponent,
@@ -71,6 +68,7 @@ static func revive(
 	if not health.is_dead:
 		return
 	health.set_health(clampi(amount, 1, health.max_health))
+	health.is_dead = false
 
 static func kill(target: HealthComponent):
 	target.set_health(0)
@@ -84,9 +82,16 @@ static func refill(
 
 static func process_turn(entity: Being) -> void:
 	entity.health.regen_bar += entity.stats.health_restoration
-	
+	entity.energy.regen_bar += entity.stats.energy_regeneration
+
 	if entity.health.regen_bar >= 1.0:
 		entity.health.regen_bar = 0
 		var heal_amount = int(entity.health.max_health * entity.stats.healing_efficiency)
-		entity.health.set_health(entity.health.health + heal_amount)
-		print("Regenerado: %d HP, vida actual: %d" % [heal_amount, entity.health.health])
+		entity.health.set_health(entity.health.current + heal_amount)
+		print("Regenerado: %d HP, vida actual: %d" % [heal_amount, entity.health.current])
+	
+	if entity.energy.regen_bar >= 1.0:
+			entity.energy.regen_bar = 0
+			var energing_amount = int(entity.energy.max_energy * entity.stats.energing_efficiency)
+			entity.energy.set_energy(entity.energy.current + energing_amount)
+			print("Regenerado: %d HP, vida actual: %d" % [energing_amount, entity.energy.current])

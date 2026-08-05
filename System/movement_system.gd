@@ -3,6 +3,7 @@ extends Node
 
 @export var _grid_system: GridSystem
 @export var _grid_service: GridService
+@export var _animation_system: AnimationSystem
 
 signal move_finished()
 
@@ -10,21 +11,28 @@ var is_moving := false
 
 func setup(
 	grid_system: GridSystem,
-	grid_service: GridService
+	grid_service: GridService,
+	animation_system: AnimationSystem
 ) -> void:
 	_grid_system = grid_system
 	_grid_service = grid_service
-
+	_animation_system = animation_system
 # ------------------------------------------------------------------------
 # EVENTS
 # ------------------------------------------------------------------------
 
 func follow_path_event(unit: Being, path: Array[Vector2i]) -> void:
-	_follow_path(unit, path)
+	is_moving = true
+	await _follow_path(unit, path)
+	is_moving = false
 
 func walk_event(unit: Being, cell: Vector2i) -> void:
-	var path: Array[Vector2i] = [cell]
-	_follow_path(unit, path)
+	is_moving = true
+	print("starting walk")
+	if unit.turn.consuming_point(TurnComponent.TypePoint.MOVEMENT):
+		await _move_one_cell(unit,cell)
+	print("end walk")
+	is_moving = false
 
 func teleport_event(unit: Entity, cell: Vector2i) -> void:
 	if !_grid_system.is_cell_free(cell):
@@ -47,7 +55,7 @@ func knockback_event(
 	if destination == unit.position.grid_position:
 		return
 
-	await _move_cell(unit, destination)
+	await _move_one_cell(unit, destination)
 
 func pull_event(
 	unit: Entity,
@@ -67,7 +75,7 @@ func pull_event(
 	if destination == current:
 		return
 
-	await _move_cell(unit, destination)
+	await _move_one_cell(unit, destination)
 
 func swap_position_event(
 	first: Entity,
@@ -85,7 +93,6 @@ func swap_position_event(
 func stop_movement_event() -> void:
 	is_moving = false
 
-
 # ------------------------------------------------------------------------
 # INTERNAL
 # ------------------------------------------------------------------------
@@ -95,34 +102,33 @@ func _follow_path(
 	path: Array[Vector2i]
 ) -> void:
 	var steps := path.duplicate()
-	is_moving = true
 
 	for cell in steps:
-		if !is_moving:
+		if not (is_moving and \
+		_grid_system.is_cell_free(cell) and \
+		unit.turn.consuming_point(TurnComponent.TypePoint.MOVEMENT)):
 			break
 
-		if !_grid_system.is_cell_free(cell):
-			break
+		await _move_one_cell(unit,cell)
 
-		await _move_cell(unit,cell)
-
-		move_finished.emit()
-		await get_tree().create_timer(0.35).timeout
-
-	is_moving = false
-
-func _move_cell(unit: Being, cell: Vector2i):
+func _move_one_cell(unit: Being, cell: Vector2i):
+	print("move start")
 	_grid_system.move_entity(unit, cell)
 
-	var tween := create_tween()
-	tween.tween_property(
-		unit,
-		"global_position",
-		_grid_service.grid_to_world(cell),
-		0.25
+	var sequence := AnimationSequence.new()
+
+	sequence.add_batch(
+		MoveAnimationBatch.new(
+			unit,
+			_grid_service.grid_to_world(cell)
+		)
 	)
 
-	await tween.finished
+	await _animation_system.play(sequence)
+
+	move_finished.emit()
+	await get_tree().create_timer(0.35).timeout
+	print("move end")
 
 func _find_last_free_cell(
 	start: Vector2i,

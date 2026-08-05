@@ -1,33 +1,36 @@
 class_name MeleeAI
 extends AIComponent
 
-func decide(context: AIContext) -> ActionDefinition:
+func decide(context: AIContext) -> EventDefinition:
 	if context.visible_enemies.is_empty():
-		return WaitAction.new()
+		return EndTurnEvent.new()
 
 	var tuple:Array = _find_closest_enemy(context)
 	var target:Being = tuple[0]
 	var path:Array[Vector2i] = tuple[1]
 
 	if target == null:
-		return WaitAction.new()
+		return EndTurnEvent.new()
 
 	if context.actor.stats.range >= DistanceService.distance(
 		context.actor.c_position.grid_position,
 		target.c_position.grid_position
-	):
-		var decision := AttackAction.new()
+	) and context.actor.turn.action_points > 0:
+		var decision := AttackEvent.new()
+		decision.attacker = context.actor
 		decision.target = target
 		return decision
 
 	var destination := path[0]
 
-	if destination != context.actor.c_position.grid_position:
-		var decision := MoveAction.new()
-		decision.position = destination
+	if destination != target.c_position.grid_position and \
+	context.actor.turn.movement_points > 0:
+		var decision := WalkEvent.new()
+		decision.entity = context.actor
+		decision.destination = destination
 		return decision
 
-	return WaitAction.new()
+	return EndTurnEvent.new()
 
 
 func _find_closest_enemy(context: AIContext) -> Array:

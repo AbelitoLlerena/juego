@@ -4,7 +4,7 @@ extends Node
 @export var _pathfinding_system: PathfindingSystem
 @export var _grid_system: GridSystem
 
-signal final_decition(actor:Being,action:ActionDefinition)
+signal final_decition(action:EventDefinition)
 
 func setup(
 	pathfinding_system: PathfindingSystem,
@@ -23,7 +23,7 @@ func analice(actor: Enemy) -> void:
 	_get_position_free(context)
 	_get_faction_entities(context)
 
-	final_decition.emit(actor,actor.ai.decide(context))
+	final_decition.emit(actor.ai.decide(context))
 
 func _get_position_free(context: AIContext) -> void:
 	context.reachable_tiles = \

@@ -1,4 +1,8 @@
 class_name AttackEvent
 extends CombatEvent
 
-#var weapon_slot := EquipmentSlot.MAIN_HAND
+var attacker: Being
+var target: Entity
+
+func execute() -> void:
+	await system.attack_event(attacker,target)

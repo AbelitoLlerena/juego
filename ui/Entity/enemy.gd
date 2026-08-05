@@ -8,7 +8,7 @@ var _health_bar: HealthBar3D
 
 func _ready() -> void:
 	health.max_health = 10
-	health.health = 10
+	health.current = 10
 	_health_bar = HealthBar3D.new()
 	_health_bar.position = Vector2(0, -20)
 	add_child(_health_bar)
@@ -36,4 +36,4 @@ func _die() -> void:
 
 func _update_health_bar() -> void:
 	if _health_bar != null and health != null:
-		_health_bar.update_bar(health.health, health.max_health)
+		_health_bar.update_bar(health.current, health.max_health)

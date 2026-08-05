@@ -1,4 +1,8 @@
 class_name ConvertTypeDamagtEvent
 extends CombatEvent
 
-#var type : DamageType
+var attacker: Being
+var type : DamageType
+
+func execute() -> void:
+	pass

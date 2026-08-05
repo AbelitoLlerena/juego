@@ -1,5 +1,8 @@
 class_name DealDamageEvent
 extends CombatEvent
 
+var target: Entity
 var amount := 0
-#var damage_type : DamageType
+
+func execute() -> void:
+	await system.deal_damage_event(target,amount)

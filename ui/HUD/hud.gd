@@ -9,8 +9,6 @@ var _ip_label: Label
 var _end_turn_btn: Button
 var _turn_label: Label
 
-var _current_entity: Being = null
-
 func _init() -> void:
 	layer = 5
 
@@ -71,48 +69,18 @@ func _init() -> void:
 	_end_turn_btn.pressed.connect(_on_end_turn_pressed)
 	layout.add_child(_end_turn_btn)
 
-func setup(entity: Player) -> void:
-	_current_entity = entity
-	_refresh()
+func refresh(turn: TurnComponent) -> void:
+	_ap_label.text = "AP: %d/%d" % [turn.action_points, turn.max_action_points]
+	_mp_label.text = "MP: %d/%d" % [turn.movement_points, turn.max_movement_points]
+	_ip_label.text = "IP: %d/%d" % [turn.inventory_points, turn.max_inventory_points]
 
-func _refresh() -> void:
-	if _current_entity == null:
-		return
+	_check_auto_end(turn)
 
-	var t := _current_entity.turn
-	_ap_label.text = "AP: %d/%d" % [t.action_points, t.max_action_points]
-	_mp_label.text = "MP: %d/%d" % [t.movement_points, t.max_movement_points]
-	_ip_label.text = "IP: %d/%d" % [t.inventory_points, t.max_inventory_points]
+func has_points(turn: TurnComponent) -> bool:
+	return turn.action_points > 0 or turn.movement_points > 0 or turn.inventory_points > 0
 
-func spend_action(points: int = 1) -> void:
-	if _current_entity == null:
-		return
-	_current_entity.turn.action_points = max(0, _current_entity.turn.action_points - points)
-	_refresh()
-	_check_auto_end()
-
-func spend_movement(points: int = 1) -> void:
-	if _current_entity == null:
-		return
-	_current_entity.turn.movement_points = max(0, _current_entity.turn.movement_points - points)
-	_refresh()
-	_check_auto_end()
-
-func spend_inventory(points: int = 1) -> void:
-	if _current_entity == null:
-		return
-	_current_entity.turn.inventory_points = max(0, _current_entity.turn.inventory_points - points)
-	_refresh()
-	_check_auto_end()
-
-func has_points() -> bool:
-	if _current_entity == null:
-		return false
-	var t := _current_entity.turn
-	return t.action_points > 0 or t.movement_points > 0 or t.inventory_points > 0
-
-func _check_auto_end() -> void:
-	if not has_points():
+func _check_auto_end(turn: TurnComponent) -> void:
+	if not has_points(turn):
 		end_turn_pressed.emit()
 
 func _on_end_turn_pressed() -> void:

@@ -1,4 +1,12 @@
 class_name PullEvent
 extends MoveEvent
 
-var target_position:Vector2i
+var origin: Vector2i
+var distance: int
+
+func execute() -> void:
+	await system.pull_event(
+		entity,
+		origin,
+		distance
+	)
