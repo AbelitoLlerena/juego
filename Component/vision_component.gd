@@ -1,7 +1,7 @@
 class_name VisionComponent
 extends Resource
 
-@export var view_distance:int = 8
+@export var view_distance:int = 5
 @export var vision_angle:float = 360
 
 @export var darkvision:bool = false
@@ -12,3 +12,4 @@ var visible_entities: Array[Entity] = []
 var audible_entities: Array[Being] = []
 
 var visible_tiles: Array[Vector2i] = []
+var revealed_tiles: Array[Vector2i] = []

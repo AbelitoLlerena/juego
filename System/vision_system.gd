@@ -6,11 +6,17 @@ static func update(vision: VisionComponent, position: PositionComponent, grid: G
 	_calculate_visible_tiles(vision, position, grid)
 	_calculate_visible_entities(vision, position, grid)
 	_calculate_audible_entities(vision, position, grid)
+	_accumulate_revealed(vision)
 
 static func _clear(vision: VisionComponent) -> void:
 	vision.visible_tiles.clear()
 	vision.visible_entities.clear()
 	vision.audible_entities.clear()
+
+static func _accumulate_revealed(vision: VisionComponent) -> void:
+	for tile in vision.visible_tiles:
+		if tile not in vision.revealed_tiles:
+			vision.revealed_tiles.append(tile)
 
 static func _calculate_visible_tiles(
 	vision: VisionComponent,
@@ -25,20 +31,27 @@ static func _calculate_visible_tiles(
 
 	_sort_by_distance(visible, position.grid_position)
 
+	var shadows: Array[Vector2i] = []
+
 	for tile in visible:
 		if tile in vision.visible_tiles:
 			continue
 
 		vision.visible_tiles.append(tile)
 
-		#if !grid.blocks_vision(tile):
-			#continue
+		if !grid.blocks_vision(tile):
+			continue
 
-		_cast_shadow(
-			vision,
-			position.grid_position,
-			tile
+		shadows.append_array(
+			_cast_shadow(
+				vision,
+				position.grid_position,
+				tile
+			)
 		)
+
+	for tile in shadows:
+		vision.visible_tiles.erase(tile)
 
 static func _sort_by_distance(
 	tiles: Array[Vector2i],
@@ -55,12 +68,12 @@ static func _cast_shadow(
 	vision: VisionComponent,
 	origin: Vector2i,
 	obstacle: Vector2i
-) -> void:
+) -> Array[Vector2i]:
 
 	var distance := DistanceService.distance(origin,obstacle)
 
 	if distance <= 0:
-		return
+		return []
 
 	var direction := obstacle + (obstacle - origin)
 	var angle := rad_to_deg(atan(1.0 / distance))
@@ -72,10 +85,8 @@ static func _cast_shadow(
 		angle * 2.0
 	)
 
-	for tile in shadow:
-		if tile == obstacle:
-			continue
-		vision.visible_tiles.erase(tile)
+	shadow.erase(obstacle)
+	return shadow
 
 static func _calculate_visible_entities(vision: VisionComponent, position: PositionComponent, grid: GridSystem) -> void:
 	for tile in vision.visible_tiles:

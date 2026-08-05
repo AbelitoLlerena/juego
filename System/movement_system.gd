@@ -5,7 +5,7 @@ extends Node
 @export var _grid_service: GridService
 @export var _animation_system: AnimationSystem
 
-signal move_finished()
+signal move_finished(unit:Being)
 
 var is_moving := false
 
@@ -28,10 +28,8 @@ func follow_path_event(unit: Being, path: Array[Vector2i]) -> void:
 
 func walk_event(unit: Being, cell: Vector2i) -> void:
 	is_moving = true
-	print("starting walk")
 	if unit.turn.consuming_point(TurnComponent.TypePoint.MOVEMENT):
 		await _move_one_cell(unit,cell)
-	print("end walk")
 	is_moving = false
 
 func teleport_event(unit: Entity, cell: Vector2i) -> void:
@@ -112,8 +110,8 @@ func _follow_path(
 		await _move_one_cell(unit,cell)
 
 func _move_one_cell(unit: Being, cell: Vector2i):
-	print("move start")
 	_grid_system.move_entity(unit, cell)
+	unit.on_ground(_grid_system)
 
 	var sequence := AnimationSequence.new()
 
@@ -126,9 +124,8 @@ func _move_one_cell(unit: Being, cell: Vector2i):
 
 	await _animation_system.play(sequence)
 
-	move_finished.emit()
+	move_finished.emit(unit)
 	await get_tree().create_timer(0.35).timeout
-	print("move end")
 
 func _find_last_free_cell(
 	start: Vector2i,

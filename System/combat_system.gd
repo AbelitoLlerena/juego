@@ -12,12 +12,11 @@ func attack_event(attacker: Being, target: Entity) -> void:
 	var context := AttackContext.new()
 
 	context.attacker = attacker
+	context.target = target
 
 	if target is Thing:
-		context.target = Being.new()
 		AttackSystem.attack_thing(context)
 	else:
-		context.target = target
 		AttackSystem.attack_being(context)
 
 	attacker.turn.consuming_point(TurnComponent.TypePoint.ACTION)
@@ -121,6 +120,12 @@ func _process_attack(context: AttackContext) -> void:
 
 	_apply_attack_reactions(context)
 	_dispatch_events(context)
+	
+	for effect in context.result.effects:
+		if context.target is Being:
+			var effect_context := EffectContext.new()
+			effect_context.bearer = context.target
+			EffectSystem.add_effect(context.target.effect, effect, effect_context)
 
 	for effect in context.result.effects:
 		_apply_effects(context.target.effects, effect)

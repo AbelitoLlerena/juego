@@ -2,6 +2,7 @@ extends Node2D
 @onready var tilemap = $Ground
 @onready var player: Player = $Player
 @onready var enemy: Enemy = $Enemy
+@onready var fog: FogOverlay = $Fog
 
 @onready var grid_service: GridService = GridService.new()
 @onready var path_service: PathfindingService = PathfindingService.new()
@@ -24,19 +25,49 @@ extends Node2D
 @onready var collector: InputCollector = InputCollector.new()
 @onready var hud: HUD = HUD.new()
 @onready var container_ui: ContainerUI = ContainerUI.new()
+@onready var character_panel: CharacterPanelUI = CharacterPanelUI.new()
+@onready var surface_label: Label = _create_surface_label()
+@onready var object_label: Label = _create_object_label()
 
 var turn := 0
 
-var obstacles: Array[Obstacle] = [
-	Obstacle.new_at(Vector2i(1,3)),
-	Obstacle.new_at(Vector2i(3,1)),
-	Obstacle.new_at(Vector2i(2,1)),
-	Obstacle.new_at(Vector2i(0,4))
+@export var map_size: Vector2i = Vector2i(20, 20)
+@export var obstacle_cells: Array[Vector2i] = [
+	Vector2i(1,3),
+	Vector2i(3,1),
+	Vector2i(2,1),
+	Vector2i(0,4)
 ]
+@export var surface_config: Array[Dictionary] = [
+	{"type": "smoke", "cell": Vector2i(4,2)},
+	{"type": "water_vapor", "cell": Vector2i(6,3)},
+	{"type": "poison_cloud", "cell": Vector2i(8,2)},
+	{"type": "poison_puddle", "cell": Vector2i(7,6)},
+	{"type": "water_puddle", "cell": Vector2i(3,6)},
+	{"type": "mud", "cell": Vector2i(5,5)},
+	{"type": "fire", "cell": Vector2i(9,3)},
+	{"type": "mud", "cell": Vector2i(4,6)}
+]
+@export var door_list: Array[Dictionary] = [
+	{"cell": Vector2i(11,3), "target_scene": "res://Scence/world2.tscn", "name": "Puerta del bosque"}
+]
+@export var barrel_cells: Array[Vector2i] = [
+	Vector2i(10,6),
+	Vector2i(12,5)
+]
+@export var barrel_radius: int = 2
+@export var barrel_damage: int = 5
+@export var chest_cell: Vector2i = Vector2i(5, 4)
+
+var obstacles: Array[Obstacle] = []
+var surfaces: Array[Surface] = []
 
 func _ready():
+	_build_obstacles()
+	_build_surfaces()
+
 	grid_service.setup(tilemap)
-	path_service.setup(Vector2i(20,20),Vector2(32,32),obstacles)
+	path_service.setup(map_size,Vector2(32,32),obstacles)
 	preview_service.setup(grid_service)
 	path_system.setup(path_service)
 	grid_system.setup(path_service)
@@ -54,6 +85,7 @@ func _ready():
 	add_child(inventory_ui)
 	add_child(hud)
 	add_child(container_ui)
+	add_child(character_panel)
 	register_system.position = Vector2(20, 240)
 
 	player.initialice()
@@ -66,14 +98,17 @@ func _ready():
 	turn_system.register(enemy)
 
 	inventory_ui.setup(player)
+	character_panel.setup(player)
 	_add_test_items()
 
 	turn_system.turn_started.connect(_on_turn_started)
 	hud.end_turn_pressed.connect(turn_system.end_turn)
-	#movement_system.move_finished.connect()
+	#movement_system.move_finished.connect(_update_vision)
 	collector.mouse_moved.connect(cursor_system.on_mouse_moved)
 	collector.primary_clicked.connect(cursor_system.on_primary_clicked)
 	cursor_system.cursor_updated.connect(_update_preview)
+	cursor_system.cursor_updated.connect(_update_surface_label)
+	cursor_system.cursor_updated.connect(_update_object_label)
 	cursor_system.primary_click.connect(_excecute_action)
 	register_service.update.connect(register_system.update_logs)
 	combat_system.register_action.connect(register_service.register_event)
@@ -82,8 +117,12 @@ func _ready():
 
 	_create_chest()
 	create_obstacles()
-	hud.refresh(player.turn)
+	create_surfaces()
+	create_doors()
+	create_barrels()
+	turn_system.start()
 
+	hud.refresh(player.turn)
 	turn_system.start()
 
 func _analice_decition(event: EventDefinition) -> void:
@@ -98,17 +137,73 @@ func _analice_decition(event: EventDefinition) -> void:
 	if event is not EndTurnEvent:
 		_on_turn_started(turn_system.current_entity)
 
+func _build_obstacles() -> void:
+	for cell in obstacle_cells:
+		obstacles.append(Obstacle.new_at(cell))
+
+func _build_surfaces() -> void:
+	for config in surface_config:
+		var type := Surface.type_from_name(config.get("type", ""))
+		var cell: Vector2i = config.get("cell", Vector2i.ZERO)
+		surfaces.append(Surface.new_surface(type, cell))
+
 func _on_turn_started(entity: Being):
-	#print(entity.name)
-	VisionSystem.update(entity.vision, entity.c_position, grid_system)
+	_update_vision(entity)
+	if entity is Player:
+		hud.refresh(entity.turn)
+		_refresh_fog(entity.vision)
 	if entity is Enemy:
 		ai_system.analice(entity)
+
+func _update_vision(unit: Being):
+	VisionSystem.update(unit.vision,unit.c_position,grid_system)
+
+func _refresh_fog(vision: VisionComponent) -> void:
+	fog.update_vision(vision.visible_tiles, vision.revealed_tiles)
 
 func _update_preview(cell: CursorState):
 	if !movement_system.is_moving and cell.hovered_entity == null:
 		preview_system.update_preview(player,cell.grid_position)
 	else:
 		preview_system.clear()
+
+func _create_surface_label() -> Label:
+	var label := Label.new()
+	label.add_theme_color_override("font_color", Color.WHITE)
+	label.add_theme_color_override("font_outline_color", Color.BLACK)
+	label.add_theme_constant_override("outline_size", 4)
+	label.visible = false
+	label.z_index = 100
+	add_child(label)
+	return label
+
+func _update_surface_label(state: CursorState) -> void:
+	var surface := grid_system.get_surface(state.grid_position)
+	if surface == null:
+		surface_label.visible = false
+		return
+	surface_label.text = surface.entity_name
+	surface_label.global_position = grid_service.grid_to_world(state.grid_position) + Vector2(0, 24)
+	surface_label.visible = true
+
+func _create_object_label() -> Label:
+	var label := Label.new()
+	label.add_theme_color_override("font_color", Color.WHITE)
+	label.add_theme_color_override("font_outline_color", Color.BLACK)
+	label.add_theme_constant_override("outline_size", 4)
+	label.visible = false
+	label.z_index = 100
+	add_child(label)
+	return label
+
+func _update_object_label(state: CursorState) -> void:
+	var target = state.hovered_entity
+	if target is Thing and target.entity_name != "":
+		object_label.text = target.entity_name
+		object_label.global_position = grid_service.grid_to_world(state.grid_position) + Vector2(0, 24)
+		object_label.visible = true
+	else:
+		object_label.visible = false
 
 func _excecute_action(state: CursorState):
 	var objetive = state.hovered_entity
@@ -130,6 +225,8 @@ func _excecute_action(state: CursorState):
 			event.attacker = player
 			event.target = objetive
 			_analice_decition(event)
+	elif objetive is Thing and objetive.openable != null:
+		_try_open_door(objetive)
 	elif objetive is Entity and \
 		DistanceService.distance(
 			player.c_position.grid_position,
@@ -139,8 +236,56 @@ func _excecute_action(state: CursorState):
 			event.attacker = player
 			event.target = objetive
 			_analice_decition(event)
+			_check_explosion(objetive)
 	elif objetive == null:
 		_move_player()
+
+func _try_open_door(door: Thing) -> void:
+	if door.openable.opened:
+		return
+	if DistanceService.distance(
+		player.c_position.grid_position,
+		door.c_position.grid_position
+	) > 1:
+		register_service.register_event("Debes estar al lado de " + door.openable.display_name + " para abrirla")
+		return
+	if player.turn.action_points <= 0:
+		return
+	player.turn.consuming_point(TurnComponent.TypePoint.ACTION)
+	door.openable.opened = true
+	register_service.register_event("Abres: " + door.openable.display_name)
+	if door.openable.target_scene != "" and ResourceLoader.exists(door.openable.target_scene):
+		get_tree().change_scene_to_file(door.openable.target_scene)
+
+func _check_explosion(target) -> void:
+	if target is Thing and target.attackable != null and target.health.health <= 0:
+		_explode(target)
+
+func _explode(barrel: Thing) -> void:
+	var cell := barrel.c_position.grid_position
+	var radius := barrel.attackable.explosion_radius
+	var damage := barrel.attackable.explosion_damage
+
+	grid_system.unregister_entity(barrel)
+	var visual = barrel.get_meta("visual", null)
+	if visual != null:
+		visual.queue_free()
+
+	var tiles := AreaService.circle(cell, radius)
+	for tile in tiles:
+		var e := grid_system.get_entity(tile)
+		if e is Being:
+			HealthSystem.apply_damage(e.health, damage)
+			var ctx := EffectContext.new()
+			ctx.bearer = e
+			EffectSystem.add_effect(e.effect, StatusEffects.burn(), ctx, 2)
+
+	var fire := Surface.new_surface(Surface.Type.FIRE, cell)
+	surfaces.append(fire)
+	grid_system.register_surface(fire)
+	_create_thing_rect(fire, fire.color())
+
+	register_service.register_event("¡Boom! El barril de fuego explota")
 
 func _move_player():
 	if movement_system.is_moving:
@@ -166,24 +311,52 @@ func _move_player():
 
 func create_obstacles():
 	for obs in obstacles:
-		var rect := ColorRect.new()
-
-		rect.color = Color.DARK_RED
-		rect.size = Vector2(32,32)
-		rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-		rect.position = (
-			Vector2(obs.c_position.grid_position) * 32
-		)
-
-		add_child(rect)
+		obs.blocks_vision = true
+		_create_thing_rect(obs, Color.DARK_RED)
 		grid_system.register_entity(obs)
+
+func create_surfaces():
+	for s in surfaces:
+		_create_thing_rect(s, s.color())
+		grid_system.register_surface(s)
+
+func create_doors():
+	for config in door_list:
+		var door := Door.new_at(
+			config.get("cell", Vector2i.ZERO),
+			config.get("target_scene", ""),
+			config.get("name", "Puerta")
+		)
+		_create_thing_sprite(door, "res://sprites/objects/door.png")
+		grid_system.register_entity(door)
+
+func create_barrels():
+	for cell in barrel_cells:
+		var barrel := Barrel.new_at(cell, barrel_radius, barrel_damage)
+		_create_thing_sprite(barrel, "res://sprites/objects/barrel.png")
+		grid_system.register_entity(barrel)
+
+func _create_thing_rect(thing: Thing, color: Color) -> void:
+	var rect := ColorRect.new()
+	rect.color = color
+	rect.size = Vector2(32, 32)
+	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	rect.position = Vector2(thing.c_position.grid_position) * 32
+	add_child(rect)
+	thing.set_meta("visual", rect)
+
+func _create_thing_sprite(thing: Thing, texture_path: String) -> void:
+	var sprite := Sprite2D.new()
+	sprite.texture = load(texture_path)
+	sprite.position = Vector2(thing.c_position.grid_position) * Vector2(32, 32) + Vector2(16, 16)
+	add_child(sprite)
+	thing.set_meta("visual", sprite)
 
 func _create_chest() -> void:
 	var chest := Chest.new()
 	chest.entity_name = "Cofre"
 	chest.chest_name = "Cofre del Tesoro"
-	var chest_pos := Vector2i(5, 4)
+	var chest_pos := chest_cell
 	chest.c_position.grid_position = chest_pos
 	grid_system.register_entity(chest)
 

@@ -4,21 +4,24 @@ extends RefCounted
 static func add_effect(
 	component: EffectComponent,
 	definition: EffectDefinition,
-	context: EffectContext = null
+	context: EffectContext = null,
+	stacks := 1,
+	duration := -1
 ) -> void:
 	
 	for effect in component.effects:
 		if effect.definition == definition:
-			add_stacks(component, effect, 1, context)
+			add_stacks(component, effect, stacks, context)
 			return
 
 	var instance := EffectInstance.new()
 	instance.definition = definition
-	instance.stacks = 1
-	instance.remaining_turns = definition.default_duration
+	instance.stacks = stacks
+	instance.remaining_turns = duration if duration >= 0 else definition.default_duration
 
 	component.effects.append(instance)
 
+	component.effects_changed.emit()
 	emit(component, EffectTrigger.Trigger.ON_APPLY, context)
 
 
@@ -31,6 +34,7 @@ static func remove_effect(
 	emit(component, EffectTrigger.Trigger.ON_REMOVE, context)
 
 	component.effects.erase(effect)
+	component.effects_changed.emit()
 
 
 static func add_stacks(
@@ -75,18 +79,43 @@ static func emit(
 	context: EffectContext = null
 ) -> void:
 
+	if context == null:
+		context = EffectContext.new()
+
 	for effect in component.effects:
 
 		if effect.definition == null:
 			continue
+
+		context.effect = effect.definition
 
 		for rule in effect.definition.rules:
 
 			if rule.trigger != trigger:
 				continue
 
-			# TODO: Evaluar condiciones
+			if rule.conditions != null and not rule.conditions.check(context):
+				continue
 
 			for action in rule.actions:
-				# TODO: ActionSystem.execute(action, effect, context)
-				pass
+				ActionSystem.execute(action, context)
+
+
+static func process_turn(component: EffectComponent, bearer: Being) -> void:
+	var context := EffectContext.new()
+	context.bearer = bearer
+
+	emit(component, EffectTrigger.Trigger.TURN_END, context)
+
+	var to_remove: Array[EffectInstance] = []
+	for effect in component.effects:
+		if effect.remaining_turns < 0:
+			continue
+		effect.remaining_turns -= 1
+		if effect.remaining_turns <= 0:
+			to_remove.append(effect)
+
+	for effect in to_remove:
+		remove_effect(component, effect, context)
+
+	component.effects_changed.emit()

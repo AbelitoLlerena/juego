@@ -23,3 +23,17 @@ func _init() -> void:
 	turn = TurnComponent.new()
 	vision = VisionComponent.new()
 	effect = EffectComponent.new()
+
+func on_ground(grid: GridSystem) -> void:
+	var surface := grid.get_surface(c_position.grid_position)
+	if surface == null or surface.effect_definition == null:
+		return
+	var context := EffectContext.new()
+	context.bearer = self
+	EffectSystem.add_effect(
+		effect,
+		surface.effect_definition,
+		context,
+		surface.effect_stacks,
+		surface.effect_duration
+	)

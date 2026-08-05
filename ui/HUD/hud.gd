@@ -7,7 +7,6 @@ var _ap_label: Label
 var _mp_label: Label
 var _ip_label: Label
 var _end_turn_btn: Button
-var _turn_label: Label
 
 func _init() -> void:
 	layer = 5

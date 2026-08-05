@@ -29,13 +29,20 @@ func next_turn():
 
 func start_turn() -> void:
 	current_entity.turn.reset_points()
+	_emit_turn_effects(EffectTrigger.Trigger.TURN_START)
 	turn_started.emit(current_entity)
 
 func end_turn():
 	HealthSystem.process_turn(current_entity)
+	EffectSystem.process_turn(current_entity.effect, current_entity)
 	_apply_variance()
 	turn_finished.emit(current_entity)
 	next_turn()
+
+func _emit_turn_effects(trigger: EffectTrigger.Trigger) -> void:
+	var context := EffectContext.new()
+	context.bearer = current_entity
+	EffectSystem.emit(current_entity.effect, trigger, context)
 
 func remove(entity):
 	var index = turn_order.find(entity)
