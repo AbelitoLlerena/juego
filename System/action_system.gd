@@ -40,11 +40,11 @@ static func execute(action: ActionDefinition, context) -> void:
 			action.effect,
 			context,
 			action.stacks,
-			action.duration
+			#action.duration
 		)
 
 	elif action is RemoveStatusAction:
-		_remove_status(bearer, action, context)
+		_remove_status(bearer, action)
 
 	elif action is ModifyStatAction:
 		_modify_stat(bearer, action)
@@ -73,10 +73,10 @@ static func _current_stacks(context) -> int:
 			return instance.stacks
 	return 1
 
-static func _remove_status(bearer: Being, action: RemoveStatusAction, context) -> void:
+static func _remove_status(bearer: Being, action: RemoveStatusAction) -> void:
 	for instance in bearer.effect.effects:
 		if instance.definition != null and instance.definition.id == action.effect_id:
-			EffectSystem.remove_effect(bearer.effect, instance, context)
+			EffectSystem.remove_effect(bearer.effect, instance)
 			return
 
 static func _modify_stat(bearer: Being, action: ModifyStatAction) -> void:

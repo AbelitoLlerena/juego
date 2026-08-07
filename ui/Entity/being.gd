@@ -24,16 +24,27 @@ func _init() -> void:
 	vision = VisionComponent.new()
 	effect = EffectComponent.new()
 
-func on_ground(grid: GridSystem) -> void:
-	var surface := grid.get_surface(c_position.grid_position)
-	if surface == null or surface.effect_definition == null:
-		return
-	var context := EffectContext.new()
-	context.bearer = self
-	EffectSystem.add_effect(
-		effect,
-		surface.effect_definition,
-		context,
-		surface.effect_stacks,
-		surface.effect_duration
-	)
+func end_turn() -> void:
+	HealthSystem.end_turn(self)
+	EffectSystem.end_turn(self)
+
+	if stats.var_health != 0:
+		var amount := int(stats.var_health)
+		if amount >= 0:
+			HealthSystem.heal(health, amount)
+		else:
+			HealthSystem.apply_damage(health, -amount)
+
+	if stats.var_energy != 0:
+		var amount := int(stats.var_energy)
+		if amount >= 0:
+			HealthSystem.restore_energy(energy, amount)
+		else:
+			HealthSystem.spend_energy(energy, -amount)
+
+	stats.morale = clamp(stats.morale + stats.var_morale, 0.0, 1.0)
+	stats.stress = clamp(stats.stress + stats.var_stress, 0.0, 1.0)
+	stats.hungry = clamp(stats.hungry + stats.var_hungry, 0.0, 1.0)
+	stats.thirst = clamp(stats.thirst + stats.var_thirst, 0.0, 1.0)
+	stats.pain = clamp(stats.pain + stats.var_pain, 0.0, 1.0)
+	stats.fatigue = clamp(stats.fatigue + stats.var_fatigue, 0.0, 1.0)

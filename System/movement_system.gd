@@ -111,7 +111,6 @@ func _follow_path(
 
 func _move_one_cell(unit: Being, cell: Vector2i):
 	_grid_system.move_entity(unit, cell)
-	unit.on_ground(_grid_system)
 
 	var sequence := AnimationSequence.new()
 

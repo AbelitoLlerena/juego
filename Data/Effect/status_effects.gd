@@ -21,7 +21,6 @@ static func poison() -> EffectDefinition:
 	effect.rules = [rule]
 	return effect
 
-
 static func burn() -> EffectDefinition:
 	var effect := EffectDefinition.new()
 	effect.id = &"burn"

@@ -20,6 +20,7 @@ extends Node2D
 @onready var skill_system: SkillSystem = SkillSystem.new()
 @onready var ai_system: AISystem = AISystem.new()
 @onready var animation_system: AnimationSystem = AnimationSystem.new()
+@onready var surface_system: SurfaceSystem = SurfaceSystem.new()
 
 @onready var inventory_ui:InventoryUI = InventoryUI.new()
 @onready var collector: InputCollector = InputCollector.new()
@@ -38,34 +39,34 @@ var turn := 0
 	Vector2i(2,1),
 	Vector2i(0,4)
 ]
-@export var surface_config: Array[Dictionary] = [
-	{"type": "smoke", "cell": Vector2i(4,2)},
-	{"type": "water_vapor", "cell": Vector2i(6,3)},
-	{"type": "poison_cloud", "cell": Vector2i(8,2)},
-	{"type": "poison_puddle", "cell": Vector2i(7,6)},
-	{"type": "water_puddle", "cell": Vector2i(3,6)},
-	{"type": "mud", "cell": Vector2i(5,5)},
-	{"type": "fire", "cell": Vector2i(9,3)},
-	{"type": "mud", "cell": Vector2i(4,6)}
-]
+
+@export var surface_config: Dictionary[Vector2i,SurfaceDefinition] = {
+	Vector2i(4,2): SmokeSurfaceDefinition.new(),
+	Vector2i(6,3): WaterVaporSurfaceDefinition.new(),
+	Vector2i(8,2): PoisonCloudSurfaceDefinition.new(),
+	Vector2i(7,6): PoisonPuddleSurfaceDefinition.new(),
+	Vector2i(3,6): WaterPuddleSurfaceDefinition.new(),
+	Vector2i(5,5): MudSurfaceDefinition.new(),
+	Vector2i(9,3): FireSurfaceDefinition.new(),
+	Vector2i(4,6): MudSurfaceDefinition.new(),
+}
+
 @export var door_list: Array[Dictionary] = [
 	{"cell": Vector2i(11,3), "target_scene": "res://Scence/world2.tscn", "name": "Puerta del bosque"}
 ]
+
 @export var barrel_cells: Array[Vector2i] = [
 	Vector2i(10,6),
 	Vector2i(12,5)
 ]
+
 @export var barrel_radius: int = 2
 @export var barrel_damage: int = 5
 @export var chest_cell: Vector2i = Vector2i(5, 4)
 
 var obstacles: Array[Obstacle] = []
-var surfaces: Array[Surface] = []
 
 func _ready():
-	_build_obstacles()
-	_build_surfaces()
-
 	grid_service.setup(tilemap)
 	path_service.setup(map_size,Vector2(32,32),obstacles)
 	preview_service.setup(grid_service)
@@ -76,6 +77,7 @@ func _ready():
 	cursor_system.setup(grid_service,grid_system,player)
 	skill_system.setup(grid_system,cursor_system)
 	ai_system.setup(path_system,grid_system)
+	surface_system.setup(grid_system)
 
 	add_child(collector)
 	add_child(preview_service)
@@ -102,6 +104,7 @@ func _ready():
 	_add_test_items()
 
 	turn_system.turn_started.connect(_on_turn_started)
+	turn_system.turn_finished.connect(_end_turn)
 	hud.end_turn_pressed.connect(turn_system.end_turn)
 	#movement_system.move_finished.connect(_update_vision)
 	collector.mouse_moved.connect(cursor_system.on_mouse_moved)
@@ -113,17 +116,24 @@ func _ready():
 	register_service.update.connect(register_system.update_logs)
 	combat_system.register_action.connect(register_service.register_event)
 	ai_system.final_decition.connect(_analice_decition)
+	surface_system.emit_event.connect(_analice_event_surface)
 	player.turn.update_points.connect(hud.refresh)
+
+	_build_obstacles()
+	_build_surfaces()
 
 	_create_chest()
 	create_obstacles()
-	create_surfaces()
 	create_doors()
 	create_barrels()
 	turn_system.start()
 
 	hud.refresh(player.turn)
 	turn_system.start()
+
+func _end_turn(entity: Being):
+	entity.end_turn()
+	surface_system.end_turn()
 
 func _analice_decition(event: EventDefinition) -> void:
 	if event is CombatEvent:
@@ -142,10 +152,15 @@ func _build_obstacles() -> void:
 		obstacles.append(Obstacle.new_at(cell))
 
 func _build_surfaces() -> void:
-	for config in surface_config:
-		var type := Surface.type_from_name(config.get("type", ""))
-		var cell: Vector2i = config.get("cell", Vector2i.ZERO)
-		surfaces.append(Surface.new_surface(type, cell))
+	for cell in surface_config.keys():
+		var definition := surface_config[cell]
+		surface_system.create(definition, cell)
+
+func _analice_event_surface(event: SurfaceEvent):
+	if event is CreateSurfaceEvent:
+		_create_surface(event.surface)
+	elif event is RemoveSurfaceEvent:
+		_remove_surface(event.surface)
 
 func _on_turn_started(entity: Being):
 	_update_vision(entity)
@@ -182,7 +197,7 @@ func _update_surface_label(state: CursorState) -> void:
 	if surface == null:
 		surface_label.visible = false
 		return
-	surface_label.text = surface.entity_name
+	surface_label.text = surface.definition.surface_name
 	surface_label.global_position = grid_service.grid_to_world(state.grid_position) + Vector2(0, 24)
 	surface_label.visible = true
 
@@ -278,13 +293,9 @@ func _explode(barrel: Thing) -> void:
 			HealthSystem.apply_damage(e.health, damage)
 			var ctx := EffectContext.new()
 			ctx.bearer = e
-			EffectSystem.add_effect(e.effect, StatusEffects.burn(), ctx, 2)
+			EffectSystem.add_effect(e.effect, StatusEffects.burn(), 2)
 
-	var fire := Surface.new_surface(Surface.Type.FIRE, cell)
-	surfaces.append(fire)
-	grid_system.register_surface(fire)
-	_create_thing_rect(fire, fire.color())
-
+	surface_system.create(FireSurfaceDefinition.new(),cell)
 	register_service.register_event("¡Boom! El barril de fuego explota")
 
 func _move_player():
@@ -315,11 +326,6 @@ func create_obstacles():
 		_create_thing_rect(obs, Color.DARK_RED)
 		grid_system.register_entity(obs)
 
-func create_surfaces():
-	for s in surfaces:
-		_create_thing_rect(s, s.color())
-		grid_system.register_surface(s)
-
 func create_doors():
 	for config in door_list:
 		var door := Door.new_at(
@@ -344,6 +350,12 @@ func _create_thing_rect(thing: Thing, color: Color) -> void:
 	rect.position = Vector2(thing.c_position.grid_position) * 32
 	add_child(rect)
 	thing.set_meta("visual", rect)
+
+func _create_surface(surface: SurfaceInstance) -> void:
+	add_child(surface)
+
+func _remove_surface(surface: SurfaceInstance) -> void:
+	remove_child(surface)
 
 func _create_thing_sprite(thing: Thing, texture_path: String) -> void:
 	var sprite := Sprite2D.new()

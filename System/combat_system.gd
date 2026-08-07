@@ -121,11 +121,9 @@ func _process_attack(context: AttackContext) -> void:
 	_apply_attack_reactions(context)
 	_dispatch_events(context)
 	
-	for effect in context.result.effects:
-		if context.target is Being:
-			var effect_context := EffectContext.new()
-			effect_context.bearer = context.target
-			EffectSystem.add_effect(context.target.effect, effect, effect_context)
+	#for effect in context.result.effects:
+		#if context.target is Being:
+			#EffectSystem.add_effect(context.target.effect)
 
 	for effect in context.result.effects:
 		_apply_effects(context.target.effects, effect)

@@ -80,7 +80,7 @@ static func refill(
 	health.set_health(health.max_health)
 	energy.energy = energy.max_energy
 
-static func process_turn(entity: Being) -> void:
+static func end_turn(entity: Being) -> void:
 	entity.health.regen_bar += entity.stats.health_restoration
 	entity.energy.regen_bar += entity.stats.energy_regeneration
 
