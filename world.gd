@@ -19,6 +19,7 @@ extends Node2D
 @onready var combat_system: CombatSystem = CombatSystem.new()
 @onready var skill_system: SkillSystem = SkillSystem.new()
 @onready var ai_system: AISystem = AISystem.new()
+@onready var effect_system: EffectSystem = EffectSystem.new()
 @onready var animation_system: AnimationSystem = AnimationSystem.new()
 @onready var surface_system: SurfaceSystem = SurfaceSystem.new()
 
@@ -106,7 +107,7 @@ func _ready():
 	turn_system.turn_started.connect(_on_turn_started)
 	turn_system.turn_finished.connect(_end_turn)
 	hud.end_turn_pressed.connect(turn_system.end_turn)
-	#movement_system.move_finished.connect(_update_vision)
+	movement_system.move_finished.connect(_update_vision)
 	collector.mouse_moved.connect(cursor_system.on_mouse_moved)
 	collector.primary_clicked.connect(cursor_system.on_primary_clicked)
 	cursor_system.cursor_updated.connect(_update_preview)
@@ -116,7 +117,8 @@ func _ready():
 	register_service.update.connect(register_system.update_logs)
 	combat_system.register_action.connect(register_service.register_event)
 	ai_system.final_decition.connect(_analice_decition)
-	surface_system.emit_event.connect(_analice_event_surface)
+	surface_system.emit_event.connect(_analice_event)
+	skill_system.emit_event.connect(_analice_event)
 	player.turn.update_points.connect(hud.refresh)
 
 	_build_obstacles()
@@ -126,24 +128,49 @@ func _ready():
 	create_obstacles()
 	create_doors()
 	create_barrels()
-	turn_system.start()
 
 	hud.refresh(player.turn)
 	turn_system.start()
 
-func _end_turn(entity: Being):
-	entity.end_turn()
+func _end_turn(entity):
+	for ent in turn_system.turn_order:
+		ent.end_turn()
+		effect_system.end_turn(ent)
+	movement_system.stop_movement_event()
 	surface_system.end_turn()
 
-func _analice_decition(event: EventDefinition) -> void:
-	if event is CombatEvent:
+func _create_surface(surface: SurfaceInstance) -> void:
+	add_child(surface)
+
+func _remove_surface(surface: SurfaceInstance) -> void:
+	remove_child(surface)
+
+func _analice_event(event: EventDefinition):
+	if event is SkillActionEvent:
+		if event is SkillAttackEvent \
+		or event is SkillHealEvent:
+			event.system = combat_system
+		elif event is SkillApplyEffectEvent:
+			event.system = effect_system
+		elif event is SkillTeleportEvent:
+			event.system = movement_system
+	elif event is CombatEvent:
 		event.system = combat_system
+	elif event is SurfaceEvent:
+		if event is CreateSurfaceEvent:
+			_create_surface(event.surface)
+		elif event is RemoveSurfaceEvent:
+			_remove_surface(event.surface)
 	elif event is MoveEvent:
 		event.system = movement_system
 	elif event is TurnEvent:
 		event.system = turn_system
 
 	await event.execute()
+
+func _analice_decition(event: EventDefinition) -> void:
+	await _analice_event(event)
+
 	if event is not EndTurnEvent:
 		_on_turn_started(turn_system.current_entity)
 
@@ -155,12 +182,6 @@ func _build_surfaces() -> void:
 	for cell in surface_config.keys():
 		var definition := surface_config[cell]
 		surface_system.create(definition, cell)
-
-func _analice_event_surface(event: SurfaceEvent):
-	if event is CreateSurfaceEvent:
-		_create_surface(event.surface)
-	elif event is RemoveSurfaceEvent:
-		_remove_surface(event.surface)
 
 func _on_turn_started(entity: Being):
 	_update_vision(entity)
@@ -235,7 +256,7 @@ func _excecute_action(state: CursorState):
 		elif DistanceService.distance(
 			player.c_position.grid_position,
 			state.grid_position
-		) <= player.stats.range and player.turn.action_points > 0:
+		) <= player.stats.get_stat(StatsComponent.Stat.RANGE) and player.turn.action_points > 0:
 			event = AttackEvent.new()
 			event.attacker = player
 			event.target = objetive
@@ -273,7 +294,7 @@ func _try_open_door(door: Thing) -> void:
 		get_tree().change_scene_to_file(door.openable.target_scene)
 
 func _check_explosion(target) -> void:
-	if target is Thing and target.attackable != null and target.health.health <= 0:
+	if target is Thing and target.attackable != null and target.health.current <= 0:
 		_explode(target)
 
 func _explode(barrel: Thing) -> void:
@@ -291,16 +312,15 @@ func _explode(barrel: Thing) -> void:
 		var e := grid_system.get_entity(tile)
 		if e is Being:
 			HealthSystem.apply_damage(e.health, damage)
-			var ctx := EffectContext.new()
-			ctx.bearer = e
-			EffectSystem.add_effect(e.effect, StatusEffects.burn(), 2)
+			effect_system.add_effect_event(e.effect, StatusEffects.burn())
 
 	surface_system.create(FireSurfaceDefinition.new(),cell)
 	register_service.register_event("¡Boom! El barril de fuego explota")
 
 func _move_player():
 	if movement_system.is_moving:
-		movement_system.stop_movement_event()
+		var event = StopMovementEvent.new()
+		_analice_decition(event)
 		return
 
 	var path = preview_system.get_preview()
@@ -351,12 +371,6 @@ func _create_thing_rect(thing: Thing, color: Color) -> void:
 	add_child(rect)
 	thing.set_meta("visual", rect)
 
-func _create_surface(surface: SurfaceInstance) -> void:
-	add_child(surface)
-
-func _remove_surface(surface: SurfaceInstance) -> void:
-	remove_child(surface)
-
 func _create_thing_sprite(thing: Thing, texture_path: String) -> void:
 	var sprite := Sprite2D.new()
 	sprite.texture = load(texture_path)
@@ -372,8 +386,8 @@ func _create_chest() -> void:
 	chest.c_position.grid_position = chest_pos
 	grid_system.register_entity(chest)
 
-	var club := load("res://Data/Items/club_iron.tres") as ItemDefinition
-	var herb := load("res://Data/Items/herb_health.tres") as ItemDefinition
+	var club := ClubIronItem.new()
+	var herb := HerbHealthItem.new()
 	chest.inventory.add_item(club, 1)
 	chest.inventory.add_item(herb, 3)
 
@@ -385,9 +399,9 @@ func _create_chest() -> void:
 	add_child(chest_visual)
 
 func _add_test_items() -> void:
-	var club := load("res://Data/Items/club_iron.tres") as ItemDefinition
-	var herb := load("res://Data/Items/herb_health.tres") as ItemDefinition
-	var orb := load("res://Data/Items/orb_mystic.tres") as ItemDefinition
+	var club := ClubIronItem.new()
+	var herb := HerbHealthItem.new()
+	var orb := OrbMysticItem.new()
 
 	player.inventory.add_item(club, 1)
 	player.inventory.add_item(herb, 5)

@@ -1,7 +1,7 @@
 class_name DamageEnemyRule
 extends SkillRule
 
-func _init(damage: int) -> void:
+func _init(damage: Dictionary[DamageType.Type, float]) -> void:
 	condition = EnumCondition.new()
 	condition.enum_selector = GetRelationSelector.new()
 
@@ -9,5 +9,5 @@ func _init(damage: int) -> void:
 	condition.enum_selector.target_selector = TargetSelector.new()
 	condition.expected = SkillTargetType.SkillTargetFilter.ENEMY
 
-	action = DealDamageAction.new()
-	action.amount = damage
+	action = SkillDamageEvent.new()
+	action.damage = damage

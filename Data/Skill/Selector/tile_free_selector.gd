@@ -1,9 +1,9 @@
 class_name TileFreeSelector
-extends SkillSelector
+extends SkillTileSelector
 
 func casting(
-	caster_position: Vector2i,
-	caster_faction: FactionComponent,
+	caster: Being,
+	skill: SkillInstance,
 	cursor: CursorSystem
 ) -> Array[Vector2i]:
 	cursor.push_condition(CellFreeCondition.new())

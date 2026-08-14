@@ -1,5 +1,5 @@
 class_name CircleSelector
-extends SkillSelector
+extends SkillTileSelector
 
 var _radius: int
 
@@ -7,8 +7,8 @@ func  _init(radius: int) -> void:
 	_radius = radius
 
 func casting(
-	caster_position: Vector2i,
-	caster_faction: FactionComponent,
+	caster: Being,
+	skill: SkillInstance,
 	cursor: CursorSystem
 ) -> Array[Vector2i]:
 	await cursor.primary_click
@@ -19,3 +19,4 @@ func casting(
 	)
 
 	return tiles
+	

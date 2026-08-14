@@ -23,7 +23,7 @@ static var SURFACE_MAP: Dictionary = {
 
 @onready var _grid_system: GridSystem
 
-signal emit_event(event: SurfaceEvent)
+signal emit_event(event: EventDefinition)
 
 func setup(grid_system: GridSystem) -> void:
 	_grid_system = grid_system
@@ -65,27 +65,22 @@ func entity_enter(
 	entity: Being,
 	surface: SurfaceInstance
 ):
-	EffectSystem.add_effect(
-		entity.effect,
-		surface.effect
-	)
+	var event := AddEffectEvent.new()
+	event.effect = surface.effect
+	event.target = entity
 
+	#emit_event.emit(event)
 	surface.definition.on_enter(surface,entity)
 
 func entity_out(
 	entity: Being,
 	surface: SurfaceInstance
 ):
-	var instance = entity.effect.effects.filter(
-		func get_instance_of(effect: EffectInstance):
-			return effect.definition == surface.definition.effect_definition
-	)
+	var event := RemoveEffectEvent.new()
+	event.effect = surface.effect
+	event.target = entity
 
-	EffectSystem.remove_effect(
-		entity.effect,
-		instance
-	)
-
+	#emit_event.emit(event)
 	surface.definition.on_exit(surface,entity)
 
 func end_turn() -> void:

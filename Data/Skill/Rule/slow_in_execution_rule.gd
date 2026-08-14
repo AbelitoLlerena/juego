@@ -1,4 +1,4 @@
-class_name StunInExecutionRule
+class_name SlowInExecutionRule
 extends SkillRule
 
 func _init(execution_name: String) -> void:
@@ -6,6 +6,7 @@ func _init(execution_name: String) -> void:
 
 	condition.collection_selector = ExecutionTilesSelector.new(execution_name)
 	condition.value_selector = TargetTileSelector.new()
-
-	action = StunAction.new()
 	condition.execution_name = execution_name
+
+	action = SkillApplyEffectEvent.new()
+	action.effect = StatusEffects.slowed()

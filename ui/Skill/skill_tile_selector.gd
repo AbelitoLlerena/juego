@@ -2,8 +2,8 @@ class_name SkillTileSelector
 extends Resource
 
 func casting(
-	caster_position: Vector2i,
-	caster_faction: FactionComponent,
+	caster: Being,
+	skill: SkillInstance,
 	cursor: CursorSystem
 ) -> Array[Vector2i]:
-	return [caster_position]
+	return [caster.c_position.grid_position]

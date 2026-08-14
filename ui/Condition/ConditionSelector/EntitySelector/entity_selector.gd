@@ -5,4 +5,4 @@ func select(context) -> Variant:
 	return get_entity(context)
 
 func get_entity(context) -> Entity:
-	return null
+	return context.entity

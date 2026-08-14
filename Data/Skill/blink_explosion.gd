@@ -3,13 +3,13 @@ extends SkillDefinition
 
 func _init():
 	display_name = "Blink Explosion"
-	cooldown = 4
-	mana_cost = 20
+	cooldown = 8
+	action_cost = 3
 
 	stages = [
 		_create_explosion(),
 		_create_teleport(),
-		_create_stun(),
+		_create_slow(),
 	]
 
 func _create_explosion() -> SkillStageDefinition:
@@ -18,7 +18,9 @@ func _create_explosion() -> SkillStageDefinition:
 	stage.id = "explosion"
 	stage.selector = CircleSelector.new(3)
 	stage.rules = [
-		DamageEnemyRule.new(25),
+		DamageEnemyRule.new({
+			DamageType.Type.FIRE: 25
+		}),
 		HealAllyRule.new(25)
 	]
 
@@ -29,21 +31,21 @@ func _create_teleport():
 
 	stage.id = "teleport"
 	stage.selector = TileFreeSelector.new()
-#
+
 	stage.rules = [
 		TeleportRule.new()
 	]
 
 	return stage
 
-func _create_stun():
+func _create_slow():
 	var stage := SkillStageDefinition.new()
 
 	stage.id = "stun"
 	stage.selector = AdyacetCasterSelector.new()
 
 	stage.rules = [
-		StunInExecutionRule.new("explosion")
+		SlowInExecutionRule.new("explosion")
 	]
 
 	return stage

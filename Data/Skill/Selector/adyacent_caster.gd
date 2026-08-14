@@ -1,11 +1,15 @@
 class_name AdyacetCasterSelector
-extends SkillSelector
+extends SkillTileSelector
 
 func casting(
-	caster_position: Vector2i,
-	caster_faction: FactionComponent,
+	caster: Being,
+	skill: SkillInstance,
 	cursor: CursorSystem
 ) -> Array[Vector2i]:
-	var tiles := AreaService.circle(caster_position, 1)
-	tiles.erase(caster_position)
+	var tiles := AreaService.circle(
+		caster.c_position.grid_position, 
+		1
+	)
+
+	tiles.erase(caster.c_position.grid_position)
 	return tiles

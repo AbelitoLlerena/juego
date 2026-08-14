@@ -2,7 +2,8 @@ class_name TeleportRule
 extends SkillRule
 
 func  _init() -> void:
-	condition = ExistCondition.new()
-	condition.entity_selector = TargetSelector.new()
+	condition = NotCondition.new()
+	condition.condition = ExistCondition.new()
+	condition.entity_selector = EntitySelector.new()
 
-	action = TeleportAction.new()
+	action = SkillTeleportEvent.new()

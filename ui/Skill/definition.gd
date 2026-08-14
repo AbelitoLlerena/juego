@@ -8,7 +8,6 @@ extends Resource
 @export var icon : Texture2D
 
 @export var action_cost := 1
-@export var mana_cost := 0
 @export var cast_time := 0
 @export var enable := false
 @export var cooldown := 0

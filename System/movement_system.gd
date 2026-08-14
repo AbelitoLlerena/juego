@@ -5,7 +5,7 @@ extends Node
 @export var _grid_service: GridService
 @export var _animation_system: AnimationSystem
 
-signal move_finished(unit:Being)
+signal move_finished(unit: Being)
 
 var is_moving := false
 
@@ -23,14 +23,16 @@ func setup(
 
 func follow_path_event(unit: Being, path: Array[Vector2i]) -> void:
 	is_moving = true
-	await _follow_path(unit, path)
+	var step: Array[Vector2i] = path.duplicate()
+	for cell in step:
+		if not is_moving:
+			break
+		await walk_event(unit,cell)
 	is_moving = false
 
 func walk_event(unit: Being, cell: Vector2i) -> void:
-	is_moving = true
 	if unit.turn.consuming_point(TurnComponent.TypePoint.MOVEMENT):
 		await _move_one_cell(unit,cell)
-	is_moving = false
 
 func teleport_event(unit: Entity, cell: Vector2i) -> void:
 	if !_grid_system.is_cell_free(cell):
@@ -94,20 +96,6 @@ func stop_movement_event() -> void:
 # ------------------------------------------------------------------------
 # INTERNAL
 # ------------------------------------------------------------------------
-
-func _follow_path(
-	unit: Being,
-	path: Array[Vector2i]
-) -> void:
-	var steps := path.duplicate()
-
-	for cell in steps:
-		if not (is_moving and \
-		_grid_system.is_cell_free(cell) and \
-		unit.turn.consuming_point(TurnComponent.TypePoint.MOVEMENT)):
-			break
-
-		await _move_one_cell(unit,cell)
 
 func _move_one_cell(unit: Being, cell: Vector2i):
 	_grid_system.move_entity(unit, cell)
