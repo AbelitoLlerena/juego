@@ -3,60 +3,60 @@ extends RefCounted
 
 static func poison() -> EffectDefinition:
 	var effect := EffectDefinition.new()
-	effect.id = &"poison"
-	effect.display_name = "Veneno"
+	effect.effect_name = "Veneno"
 	effect.description = "Sufre daño por turno."
 	effect.max_stacks = 10
-	effect.default_duration = 3
+	effect.max_duration = 3
+	effect.initial_stacks = 1
 
-	var rule := EffectRule.new()
-	rule.trigger = EffectTrigger.Trigger.TURN_END
-	rule.conditions = AlwaysCondition.new()
+	var end_reaction := ApplyDamageEffectReaction.new()
+	var gain_stack_reaction := ModifyApplyDamageEffectReaction.new()
+	var loss_stack_reaction := ModifyApplyDamageEffectReaction.new()
 
-	var damage := DealDamageAction.new()
-	damage.amount = 1
-	damage.per_stack = true
-	rule.actions = [damage]
+	end_reaction.damage = 1
+	gain_stack_reaction.amount = 1
+	loss_stack_reaction.amount = -1
 
-	effect.rules = [rule]
+	effect.reactions[EffectTrigger.Trigger.TURN_END] = end_reaction
+	effect.reactions[EffectTrigger.Trigger.ON_STACK_GAIN] = gain_stack_reaction
+	effect.reactions[EffectTrigger.Trigger.ON_STACK_LOSS] = loss_stack_reaction
+
 	return effect
 
 static func burn() -> EffectDefinition:
 	var effect := EffectDefinition.new()
-	effect.id = &"burn"
-	effect.display_name = "Quemadura"
+	effect.effect_name = "Quemadura"
 	effect.description = "Arde y sufre daño por turno."
 	effect.max_stacks = 5
-	effect.default_duration = 3
+	effect.max_duration = 3
+	effect.initial_stacks = 1
 
-	var rule := EffectRule.new()
-	rule.trigger = EffectTrigger.Trigger.TURN_END
-	rule.conditions = AlwaysCondition.new()
+	var end_reaction := ApplyDamageEffectReaction.new()
+	var gain_stack_reaction := ModifyApplyDamageEffectReaction.new()
+	var loss_stack_reaction := ModifyApplyDamageEffectReaction.new()
 
-	var damage := DealDamageAction.new()
-	damage.amount = 2
-	damage.per_stack = true
-	rule.actions = [damage]
+	end_reaction.damage = 2
+	gain_stack_reaction.amount = 2
+	loss_stack_reaction.amount = -2
 
-	effect.rules = [rule]
+	effect.reactions[EffectTrigger.Trigger.TURN_END] = end_reaction
+	effect.reactions[EffectTrigger.Trigger.ON_STACK_GAIN] = gain_stack_reaction
+	effect.reactions[EffectTrigger.Trigger.ON_STACK_LOSS] = loss_stack_reaction
+
 	return effect
 
 
 static func slowed() -> EffectDefinition:
 	var effect := EffectDefinition.new()
-	effect.id = &"slowed"
-	effect.display_name = "Ralentizado"
+	effect.effect_name = "Ralentizado"
 	effect.description = "Pierde puntos de movimiento al empezar su turno."
 	effect.max_stacks = 1
-	effect.default_duration = 2
+	effect.max_duration = 2
+	effect.initial_stacks = 1
 
-	var rule := EffectRule.new()
-	rule.trigger = EffectTrigger.Trigger.TURN_START
-	rule.conditions = AlwaysCondition.new()
-
-	var slow := ModifyMovementAction.new()
+	var slow := ModifyTurnPointsEffectReaction.new()
 	slow.amount = -2
-	rule.actions = [slow]
 
-	effect.rules = [rule]
+	effect.reactions[EffectTrigger.Trigger.TURN_START] = slow
+
 	return effect

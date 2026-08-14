@@ -35,11 +35,9 @@ static func execute(action: ActionDefinition, context) -> void:
 		HealthSystem.restore_energy(bearer.energy, action.amount)
 
 	elif action is AddStatusAction:
-		EffectSystem.add_effect(
-			bearer.effect,
+		EffectSystem.add_effect_event(
+			bearer,
 			action.effect,
-			context,
-			action.stacks,
 			#action.duration
 		)
 
@@ -74,10 +72,14 @@ static func _current_stacks(context) -> int:
 	return 1
 
 static func _remove_status(bearer: Being, action: RemoveStatusAction) -> void:
-	for instance in bearer.effect.effects:
-		if instance.definition != null and instance.definition.id == action.effect_id:
-			EffectSystem.remove_effect(bearer.effect, instance)
-			return
+	pass
+	#for instance in bearer.effect.effects:
+		#if instance.definition != null and instance.definition.id == action.effect_id:
+			#EffectSystem.remove_effect_event(
+				#bearer,
+				#instance
+			#)
+			#return
 
 static func _modify_stat(bearer: Being, action: ModifyStatAction) -> void:
 	var stats := bearer.stats

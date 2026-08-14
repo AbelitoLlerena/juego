@@ -26,25 +26,74 @@ func _init() -> void:
 
 func end_turn() -> void:
 	HealthSystem.end_turn(self)
-	EffectSystem.end_turn(self)
 
-	if stats.var_health != 0:
-		var amount := int(stats.var_health)
+	var var_health = stats.get_stat(
+		StatsComponent.Stat.VAR_HEALTH
+	)
+
+	if var_health != 0:
+		var amount := int(var_health)
 		if amount >= 0:
 			HealthSystem.heal(health, amount)
 		else:
 			HealthSystem.apply_damage(health, -amount)
 
-	if stats.var_energy != 0:
-		var amount := int(stats.var_energy)
-		if amount >= 0:
-			HealthSystem.restore_energy(energy, amount)
-		else:
-			HealthSystem.spend_energy(energy, -amount)
+	stats.set_stat(
+	StatsComponent.Stat.MORALE,
+	clamp(
+		stats.get_stat(StatsComponent.Stat.MORALE)
+		+ stats.get_stat(StatsComponent.Stat.VAR_MORALE),
+		0.0,
+		1.0
+	)
+)
 
-	stats.morale = clamp(stats.morale + stats.var_morale, 0.0, 1.0)
-	stats.stress = clamp(stats.stress + stats.var_stress, 0.0, 1.0)
-	stats.hungry = clamp(stats.hungry + stats.var_hungry, 0.0, 1.0)
-	stats.thirst = clamp(stats.thirst + stats.var_thirst, 0.0, 1.0)
-	stats.pain = clamp(stats.pain + stats.var_pain, 0.0, 1.0)
-	stats.fatigue = clamp(stats.fatigue + stats.var_fatigue, 0.0, 1.0)
+	stats.set_stat(
+		StatsComponent.Stat.STRESS,
+		clamp(
+			stats.get_stat(StatsComponent.Stat.STRESS)
+			+ stats.get_stat(StatsComponent.Stat.VAR_STRESS),
+			0.0,
+			1.0
+		)
+	)
+
+	stats.set_stat(
+		StatsComponent.Stat.HUNGER,
+		clamp(
+			stats.get_stat(StatsComponent.Stat.HUNGER)
+			+ stats.get_stat(StatsComponent.Stat.VAR_HUNGER),
+			0.0,
+			1.0
+		)
+	)
+
+	stats.set_stat(
+		StatsComponent.Stat.THIRST,
+		clamp(
+			stats.get_stat(StatsComponent.Stat.THIRST)
+			+ stats.get_stat(StatsComponent.Stat.VAR_THIRST),
+			0.0,
+			1.0
+		)
+	)
+
+	stats.set_stat(
+		StatsComponent.Stat.PAIN,
+		clamp(
+			stats.get_stat(StatsComponent.Stat.PAIN)
+			+ stats.get_stat(StatsComponent.Stat.VAR_PAIN),
+			0.0,
+			1.0
+		)
+	)
+
+	stats.set_stat(
+		StatsComponent.Stat.FATIGUE,
+		clamp(
+			stats.get_stat(StatsComponent.Stat.FATIGUE)
+			+ stats.get_stat(StatsComponent.Stat.VAR_FATIGUE),
+			0.0,
+			1.0
+		)
+	)
