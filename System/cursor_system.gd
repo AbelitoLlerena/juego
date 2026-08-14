@@ -3,6 +3,7 @@ extends  Node
 
 signal cursor_updated(state:CursorState)
 signal primary_click(state:CursorState)
+signal targeting_resolved(accepted: bool)
 
 var state := CursorState.new()
 var condition: ConditionDefinition = AlwaysCondition.new() #CellFreeCondition.new()
@@ -43,6 +44,10 @@ func on_primary_clicked():
 	if !state.is_valid:
 		return
 	primary_click.emit(state)
+	targeting_resolved.emit(true)
+
+func cancel_targeting() -> void:
+	targeting_resolved.emit(false)
 
 func get_area_borders(cells: Array[Vector2i]) -> Array[PackedVector2Array]:
 	var cell_set := {}

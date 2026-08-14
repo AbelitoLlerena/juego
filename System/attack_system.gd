@@ -82,7 +82,7 @@ static func caster_skill_heal(context: HealContext) -> void:
 	_calculate_effect_chances(context.stats)
 
 	EffectSystem.apply_effect_event(
-		context.attacker,
+		context.healer,
 		EffectTrigger.Trigger.ON_CASTER,
 		context
 	)
@@ -189,7 +189,7 @@ static func _calculate_raw_damage(
 	for damage_type in context.stats.damage.keys():
 		if context.stats.damage.has(damage_type):
 			context.stats.damage[damage_type] += (
-				context.attacker.stats.attack_damage[damage_type]
+				context.attacker.stats.attack_damage.get(damage_type, 0.0)
 				* phisical_multiplier 
 				if DamageType.is_damage_phisical(damage_type)
 				else magical_multiplier 
@@ -198,7 +198,7 @@ static func _calculate_raw_damage(
 			)
 		else:
 			context.stats.damage[damage_type] = (
-				context.attacker.stats.attack_damage[damage_type]
+				context.attacker.stats.attack_damage.get(damage_type, 0.0)
 				* phisical_multiplier 
 				if DamageType.is_damage_phisical(damage_type)
 				else magical_multiplier 

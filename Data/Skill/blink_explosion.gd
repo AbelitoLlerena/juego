@@ -2,7 +2,11 @@ class_name BlinkExplosion
 extends SkillDefinition
 
 func _init():
-	display_name = "Blink Explosion"
+	id = &"blink_explosion"
+	display_name = "Explosión Blink"
+	description = "Explota un área, parpadea a una celda libre y ralentiza a quien quede cerca."
+	icon = preload("res://icon.svg")
+	enable = true
 	cooldown = 8
 	action_cost = 3
 

@@ -4,7 +4,10 @@ extends SkillAttackEvent
 var damage: Dictionary[DamageType.Type, float] = {}
 
 func execute() -> void:
-	system.execute_damage(
+	if context == null or context.entity == null or system == null:
+		return
+
+	await system.execute_damage(
 		_create_attack_context()
 	)
 

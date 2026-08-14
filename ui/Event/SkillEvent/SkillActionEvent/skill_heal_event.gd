@@ -9,7 +9,10 @@ var context: SkillEvaluationContext
 var system: CombatSystem
 
 func execute() -> void:
-	await system.execute_healing(
+	if context == null or context.entity == null or system == null:
+		return
+
+	await system.execute_heal(
 		_create_healing_context()
 	)
 
@@ -19,7 +22,7 @@ func _create_healing_context() -> HealContext:
 	heal_context.healer = context.caster
 	heal_context.target = context.entity
 
-	heal_context.stats.healing = healing
+	heal_context.stats.base_heal = healing
 	heal_context.stats.critical_chance = critical_chance
 	heal_context.stats.critical_multiplier = critical_multiplier
 

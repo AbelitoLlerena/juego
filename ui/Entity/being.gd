@@ -25,6 +25,7 @@ func _init() -> void:
 	effect = EffectComponent.new()
 
 func end_turn() -> void:
+	skills.tick()
 	HealthSystem.end_turn(self)
 
 	var var_health = stats.get_stat(

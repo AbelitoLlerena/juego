@@ -7,6 +7,9 @@ var context: SkillEvaluationContext
 var system: MovementSystem
 
 func execute() -> void:
+	if context == null or system == null:
+		return
+
 	_analice_context()
 	system.teleport_event(caster, destination)
 

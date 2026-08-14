@@ -22,6 +22,7 @@ extends Node2D
 @onready var effect_system: EffectSystem = EffectSystem.new()
 @onready var animation_system: AnimationSystem = AnimationSystem.new()
 @onready var surface_system: SurfaceSystem = SurfaceSystem.new()
+@onready var skill_area_preview: SkillAreaPreview = SkillAreaPreview.new()
 
 @onready var inventory_ui:InventoryUI = InventoryUI.new()
 @onready var collector: InputCollector = InputCollector.new()
@@ -76,14 +77,24 @@ func _ready():
 	preview_system.setup(path_system,grid_system,preview_service)
 	movement_system.setup(grid_system, grid_service, animation_system)
 	cursor_system.setup(grid_service,grid_system,player)
-	skill_system.setup(grid_system,cursor_system)
+	skill_area_preview.setup(grid_service)
+	skill_system.setup(
+		grid_system,
+		cursor_system,
+		animation_system,
+		grid_service,
+		skill_area_preview,
+		_analice_event
+	)
 	ai_system.setup(path_system,grid_system)
 	surface_system.setup(grid_system)
 
 	add_child(collector)
 	add_child(preview_service)
+	add_child(skill_area_preview)
 	add_child(movement_system)
 	add_child(animation_system)
+	add_child(skill_system)
 	add_child(register_system)
 	add_child(inventory_ui)
 	add_child(hud)
@@ -102,14 +113,18 @@ func _ready():
 
 	inventory_ui.setup(player)
 	character_panel.setup(player)
+	hud.setup_skills(player)
 	_add_test_items()
 
 	turn_system.turn_started.connect(_on_turn_started)
 	turn_system.turn_finished.connect(_end_turn)
 	hud.end_turn_pressed.connect(turn_system.end_turn)
+	hud.skill_activated.connect(_on_skill_activated)
+	hud.skill_cancel_pressed.connect(skill_system.cancel)
 	movement_system.move_finished.connect(_update_vision)
 	collector.mouse_moved.connect(cursor_system.on_mouse_moved)
 	collector.primary_clicked.connect(cursor_system.on_primary_clicked)
+	collector.cancel_requested.connect(skill_system.cancel)
 	cursor_system.cursor_updated.connect(_update_preview)
 	cursor_system.cursor_updated.connect(_update_surface_label)
 	cursor_system.cursor_updated.connect(_update_object_label)
@@ -118,7 +133,6 @@ func _ready():
 	combat_system.register_action.connect(register_service.register_event)
 	ai_system.final_decition.connect(_analice_decition)
 	surface_system.emit_event.connect(_analice_event)
-	skill_system.emit_event.connect(_analice_event)
 	player.turn.update_points.connect(hud.refresh)
 
 	_build_obstacles()
@@ -133,6 +147,8 @@ func _ready():
 	turn_system.start()
 
 func _end_turn(entity):
+	if skill_system.casting:
+		skill_system.cancel()
 	for ent in turn_system.turn_order:
 		ent.end_turn()
 		effect_system.end_turn(ent)
@@ -198,6 +214,9 @@ func _refresh_fog(vision: VisionComponent) -> void:
 	fog.update_vision(vision.visible_tiles, vision.revealed_tiles)
 
 func _update_preview(cell: CursorState):
+	if skill_system.casting:
+		preview_system.clear()
+		return
 	if !movement_system.is_moving and cell.hovered_entity == null:
 		preview_system.update_preview(player,cell.grid_position)
 	else:
@@ -242,6 +261,8 @@ func _update_object_label(state: CursorState) -> void:
 		object_label.visible = false
 
 func _excecute_action(state: CursorState):
+	if skill_system.casting:
+		return
 	var objetive = state.hovered_entity
 	var event: EventDefinition
 	if objetive is Player:
@@ -406,3 +427,18 @@ func _add_test_items() -> void:
 	player.inventory.add_item(club, 1)
 	player.inventory.add_item(herb, 5)
 	player.inventory.add_item(orb, 3)
+
+func _on_skill_activated(skill: SkillDefinition) -> void:
+	if skill_system.casting:
+		return
+	if turn_system.current_entity != player:
+		return
+	if skill == null:
+		return
+	if movement_system.is_moving:
+		movement_system.stop_movement_event()
+
+	hud.set_armed_skill(skill)
+	await skill_system.activate_skill(player, skill)
+	hud.set_armed_skill(null)
+	hud.refresh_skills()

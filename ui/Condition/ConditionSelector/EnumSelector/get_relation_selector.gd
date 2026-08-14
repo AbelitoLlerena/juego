@@ -10,6 +10,8 @@ func get_enum(context) -> int:
 
 	if source == null or target == null:
 		return -1
+	if source is not Being or target is not Being:
+		return -1
 
 	return FactionSystem.get_relation(
 		source.faction,

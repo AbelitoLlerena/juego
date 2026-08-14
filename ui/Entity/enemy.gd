@@ -7,8 +7,8 @@ var combating: bool = false
 var _health_bar: HealthBar3D
 
 func _ready() -> void:
-	health.max_health = 10
-	health.current = 10
+	health.max_health = 100
+	health.current = 100
 	_health_bar = HealthBar3D.new()
 	_health_bar.position = Vector2(0, -20)
 	add_child(_health_bar)

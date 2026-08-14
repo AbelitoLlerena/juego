@@ -24,7 +24,7 @@ static func apply_effect_event(
 	var component: EffectComponent = entity.effect
 
 	for effect in component.effects:
-		if effect.definition.triggers.has(trigger):
+		if effect.definition.reactions.has(trigger):
 			_apply_effect_trigger(
 				effect,
 				trigger,

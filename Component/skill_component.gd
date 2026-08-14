@@ -13,7 +13,10 @@ func get_skill(id:StringName) -> SkillDefinition:
 	return null
 
 func is_on_cooldown(skill:SkillDefinition)->bool:
-	return cooldowns.get(skill.id,0) > 0
+	return get_cooldown(skill) > 0
+
+func get_cooldown(skill: SkillDefinition) -> int:
+	return cooldowns.get(skill.id, 0)
 
 func trigger_cooldown(skill:SkillDefinition):
 	cooldowns[skill.id] = skill.cooldown

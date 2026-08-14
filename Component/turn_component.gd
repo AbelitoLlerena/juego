@@ -22,6 +22,18 @@ func reset_points() -> void:
 	movement_points = max_movement_points
 	inventory_points = max_inventory_points
 
+func restore_point(
+	type: TypePoint,
+	amount: int = 1
+) -> void:
+	if type == TypePoint.MOVEMENT:
+		movement_points = min(movement_points + amount, max_movement_points)
+	if type == TypePoint.ACTION:
+		action_points = min(action_points + amount, max_action_points)
+	if type == TypePoint.INVENTORY:
+		inventory_points = min(inventory_points + amount, max_inventory_points)
+	update_points.emit(self)
+
 func consuming_point(
 	type: TypePoint,
 	amount: int = 1

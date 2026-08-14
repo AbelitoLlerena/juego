@@ -8,14 +8,9 @@ var context: SkillEvaluationContext
 var system: EffectSystem
 
 func execute() -> void:
-	await system.apply_effect(
-		_create_effect_context()
-	)
+	if context == null or context.entity is not Being:
+		return
+	if randf() > chance:
+		return
 
-func _create_effect_context() -> EffectContext:
-	var apply_context := EffectContext.new()
-
-	apply_context.source = context.entity
-	apply_context.effect = EffectInstance.new(effect)
-
-	return apply_context
+	EffectSystem.add_effect_event(context.entity, effect)
