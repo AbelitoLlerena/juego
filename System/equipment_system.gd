@@ -1,15 +1,15 @@
 class_name EquipmentSystem
 extends Node
 
-signal item_used(item: ItemDefinition, user: Being)
+signal item_used(item: EquipmentItem, user: Being)
 signal stats_recalculated(being: Being)
 signal item_dropped(item: ItemDefinition, quantity: int)
 
-func equip_item(being: Being, item: ItemDefinition) -> ItemDefinition:
-	if item == null or not item.is_equipment():
+func equip_item(being: Being, item: EquipmentItem) -> EquipmentItem:
+	if item == null:
 		return null
 
-	if being.equipment == null or being.inventory == null:
+	if being == null or being.equipment == null or being.inventory == null:
 		return null
 
 	var slot_index := being.inventory.find_slot_index(item.id)
@@ -26,8 +26,11 @@ func equip_item(being: Being, item: ItemDefinition) -> ItemDefinition:
 	recalculate_stats(being)
 	return previous
 
-func unequip_item(being: Being, slot: ItemDefinition.SlotType) -> ItemDefinition:
-	if being.equipment == null or being.inventory == null:
+func unequip_item(
+	being: Being, 
+	slot: EquipmentItem.EquipmentSlot
+) -> EquipmentItem:
+	if being == null or being.equipment == null or being.inventory == null:
 		return null
 
 	if being.inventory.is_full():
@@ -41,8 +44,8 @@ func unequip_item(being: Being, slot: ItemDefinition.SlotType) -> ItemDefinition
 	recalculate_stats(being)
 	return item
 
-func use_item(being: Being, item: ItemDefinition) -> bool:
-	if item == null or not item.is_consumable():
+func use_item(being: Being, item: ConsumableItem) -> bool:
+	if item == null:
 		return false
 
 	if being.inventory == null:
@@ -71,75 +74,26 @@ func recalculate_stats(being: Being) -> void:
 		return
 
 	var stats := being.stats
-	if not stats._has_base_stats:
-		stats.save_base_stats()
+	if not stats.stats:
+		stats = StatsComponent.new()
 
 	var modifiers := being.equipment.get_stat_modifiers()
 
-	stats.strength = int(stats.get_base_stat("strength")) + int(modifiers.get("strength", 0))
-	stats.agility = int(stats.get_base_stat("agility")) + int(modifiers.get("agility", 0))
-	stats.intelligence = int(stats.get_base_stat("intelligence")) + int(modifiers.get("intelligence", 0))
-	stats.constitution = int(stats.get_base_stat("constitution")) + int(modifiers.get("constitution", 0))
-
-	stats.base_physical_damage = int(stats.get_base_stat("base_physical_damage")) + int(modifiers.get("base_physical_damage", 0))
-	stats.base_magical_damage = int(stats.get_base_stat("base_magical_damage")) + int(modifiers.get("base_magical_damage", 0))
-	stats.true_damage = int(stats.get_base_stat("true_damage")) + int(modifiers.get("true_damage", 0))
-
-	stats.crit_chance = float(stats.get_base_stat("crit_chance")) + modifiers.get("crit_chance", 0.0)
-	stats.crit_bonus = float(stats.get_base_stat("crit_bonus")) + modifiers.get("crit_bonus", 0.0)
-	stats.precision = float(stats.get_base_stat("precision")) + modifiers.get("precision", 0.0)
-	stats.weak_chance = float(stats.get_base_stat("weak_chance")) + modifiers.get("weak_chance", 0.0)
-
-	stats.armor_penetration = float(stats.get_base_stat("armor_penetration")) + modifiers.get("armor_penetration", 0.0)
-	stats.magic_penetration = float(stats.get_base_stat("magic_penetration")) + modifiers.get("magic_penetration", 0.0)
-	stats.crit_multiplier = float(stats.get_base_stat("crit_multiplier")) + modifiers.get("crit_multiplier", 0.0)
-
-	stats.life_steal = float(stats.get_base_stat("life_steal")) + modifiers.get("life_steal", 0.0)
-	stats.energy_steal = float(stats.get_base_stat("energy_steal")) + modifiers.get("energy_steal", 0.0)
-
-	stats.counterattack_chance = float(stats.get_base_stat("counterattack_chance")) + modifiers.get("counterattack_chance", 0.0)
-	stats.combo_chance = float(stats.get_base_stat("combo_chance")) + modifiers.get("combo_chance", 0.0)
-	stats.combo_damage = float(stats.get_base_stat("combo_damage")) + modifiers.get("combo_damage", 0.0)
-
-	stats.armor = int(stats.get_base_stat("armor")) + int(modifiers.get("armor", 0))
-	stats.shield = stats.strength + int(modifiers.get("shield", 0))
-	stats.block_chance = float(stats.get_base_stat("block_chance")) + modifiers.get("block_chance", 0.0)
-	stats.dodge_chance = float(stats.get_base_stat("dodge_chance")) + modifiers.get("dodge_chance", 0.0)
-	stats.damage_reflection = float(stats.get_base_stat("damage_reflection")) + modifiers.get("damage_reflection", 0.0)
-	stats.tenacity = float(stats.get_base_stat("tenacity")) + modifiers.get("tenacity", 0.0)
-	stats.damage_reduction = float(stats.get_base_stat("damage_reduction")) + modifiers.get("damage_reduction", 0.0)
-
-	stats.health_restoration = float(stats.get_base_stat("health_restoration")) + modifiers.get("health_restoration", 0.0)
-	stats.healing_efficiency = float(stats.get_base_stat("healing_efficiency")) + modifiers.get("healing_efficiency", 0.0)
-	stats.energy_regeneration = float(stats.get_base_stat("energy_regeneration")) + modifiers.get("energy_regeneration", 0.0)
-	stats.energing_efficiency = float(stats.get_base_stat("energing_efficiency")) + modifiers.get("energing_efficiency", 0.0)
-
-	stats.resist_physical = int(stats.get_base_stat("resist_physical")) + int(modifiers.get("resist_physical", 0))
-	stats.resist_magical = int(stats.get_base_stat("resist_magical")) + int(modifiers.get("resist_magical", 0))
-	stats.resist_mental = int(stats.get_base_stat("resist_mental")) + int(modifiers.get("resist_mental", 0))
-	stats.resist_fire = int(stats.get_base_stat("resist_fire")) + int(modifiers.get("resist_fire", 0))
-	stats.resist_ice = int(stats.get_base_stat("resist_ice")) + int(modifiers.get("resist_ice", 0))
-	stats.resist_holy = int(stats.get_base_stat("resist_holy")) + int(modifiers.get("resist_holy", 0))
-	stats.resist_dark = int(stats.get_base_stat("resist_dark")) + int(modifiers.get("resist_dark", 0))
-	stats.resist_poison = int(stats.get_base_stat("resist_poison")) + int(modifiers.get("resist_poison", 0))
-	stats.resist_bleed = int(stats.get_base_stat("resist_bleed")) + int(modifiers.get("resist_bleed", 0))
-	stats.resist_control = int(stats.get_base_stat("resist_control")) + int(modifiers.get("resist_control", 0))
-	stats.resist_movement = int(stats.get_base_stat("resist_movement")) + int(modifiers.get("resist_movement", 0))
+	for stat: StatsComponent.Stat in modifiers.keys():
+		stats.modify_stat(
+			stat,
+			modifiers[stat]
+		)
 
 	stats_recalculated.emit(being)
 
-func _apply_use_effect(being: Being, item: ItemDefinition) -> bool:
+func _apply_use_effect(being: Being, item: ConsumableItem) -> bool:
 	match item.use_action:
 		&"heal":
 			if being.health == null:
 				return false
 			var healed := HealthSystem.heal(being.health, item.use_value)
 			return healed > 0
-		&"restore_energy":
-			if being.energy == null:
-				return false
-			var restored := HealthSystem.restore_energy(being.energy, item.use_value)
-			return restored > 0
 		&"revive":
 			if being.health == null:
 				return false

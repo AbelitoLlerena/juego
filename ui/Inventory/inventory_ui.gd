@@ -104,7 +104,7 @@ func _on_drop_pressed(item: ItemDefinition) -> void:
 		return
 	_equip_system.drop_item(_being, item, 1)
 
-func _on_unequip_pressed(slot: ItemDefinition.SlotType) -> void:
+func _on_unequip_pressed(slot: EquipmentItem.EquipmentSlot) -> void:
 	if _being == null:
 		return
 	_equip_system.unequip_item(_being, slot)

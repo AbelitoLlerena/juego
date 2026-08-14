@@ -156,25 +156,77 @@ func _refresh() -> void:
 
 	var health := _being.health
 	var stats := _being.stats
-	var energy := _being.energy
 
 	_add_stat("Salud", "%d / %d" % [health.current, health.max_health])
-	_add_stat("Energía", "%d / %d" % [energy.current, energy.max_energy])
-	_add_stat("Fuerza", str(stats.strength))
-	_add_stat("Agilidad", str(stats.agility))
-	_add_stat("Inteligencia", str(stats.intelligence))
-	_add_stat("Constitución", str(stats.constitution))
-	_add_stat("Armadura", str(stats.armor))
-	_add_stat("Escudo", str(stats.shield))
-	_add_stat("Daño físico", str(stats.base_physical_damage))
-	_add_stat("Daño mágico", str(stats.base_magical_damage))
-	_add_stat("Alcance", str(stats.range))
-	_add_stat("Moral", "%.0f%%" % (stats.morale * 100))
-	_add_stat("Estrés", "%.0f%%" % (stats.stress * 100))
-	_add_stat("Hambre", "%.0f%%" % (stats.hungry * 100))
-	_add_stat("Sed", "%.0f%%" % (stats.thirst * 100))
-	_add_stat("Dolor", "%.0f%%" % (stats.pain * 100))
-	_add_stat("Fatiga", "%.0f%%" % (stats.fatigue * 100))
+	_add_stat(
+		stats.get_stat_name(StatsComponent.Stat.STRENGTH),
+		str(stats.get_stat(StatsComponent.Stat.STRENGTH))
+	)
+
+	_add_stat(
+		stats.get_stat_name(StatsComponent.Stat.AGILITY),
+		str(stats.get_stat(StatsComponent.Stat.AGILITY))
+	)
+
+	_add_stat(
+		stats.get_stat_name(StatsComponent.Stat.INTELLIGENCE),
+		str(stats.get_stat(StatsComponent.Stat.INTELLIGENCE))
+	)
+
+	_add_stat(
+		stats.get_stat_name(StatsComponent.Stat.CONSTITUTION),
+		str(stats.get_stat(StatsComponent.Stat.CONSTITUTION))
+	)
+
+	_add_stat(
+		stats.get_stat_name(StatsComponent.Stat.ARMOR),
+		str(stats.get_stat(StatsComponent.Stat.ARMOR))
+	)
+
+	_add_stat(
+		stats.get_stat_name(StatsComponent.Stat.SHIELD),
+		str(stats.get_stat(StatsComponent.Stat.SHIELD))
+	)
+
+	_add_stat(
+		stats.get_stat_name(StatsComponent.Stat.PHYSICAL_DAMAGE),
+		str(stats.get_stat(StatsComponent.Stat.PHYSICAL_DAMAGE))
+	)
+
+	_add_stat(
+		stats.get_stat_name(StatsComponent.Stat.RANGE),
+		str(stats.get_stat(StatsComponent.Stat.RANGE))
+	)
+
+	_add_stat(
+		stats.get_stat_name(StatsComponent.Stat.MORALE),
+		"%.0f%%" % (stats.get_stat(StatsComponent.Stat.MORALE) * 100)
+	)
+
+	_add_stat(
+		stats.get_stat_name(StatsComponent.Stat.STRESS),
+		"%.0f%%" % (stats.get_stat(StatsComponent.Stat.STRESS) * 100)
+	)
+
+	_add_stat(
+		stats.get_stat_name(StatsComponent.Stat.HUNGER),
+		"%.0f%%" % (stats.get_stat(StatsComponent.Stat.HUNGER) * 100)
+	)
+
+	_add_stat(
+		stats.get_stat_name(StatsComponent.Stat.THIRST),
+		"%.0f%%" % (stats.get_stat(StatsComponent.Stat.THIRST) * 100)
+	)
+
+	_add_stat(
+		stats.get_stat_name(StatsComponent.Stat.PAIN),
+		"%.0f%%" % (stats.get_stat(StatsComponent.Stat.PAIN) * 100)
+	)
+
+	_add_stat(
+		stats.get_stat_name(StatsComponent.Stat.FATIGUE),
+		"%.0f%%" % (stats.get_stat(StatsComponent.Stat.FATIGUE) * 100)
+	)
 
 	for child in _status_box.get_children():
 		child.free()

@@ -7,64 +7,28 @@ var _description_label: Label
 var _stats_container: VBoxContainer
 var _weight_label: Label
 
-var RARITY_NAMES := {
-	ItemDefinition.Rarity.COMMON: "Comun",
-	ItemDefinition.Rarity.UNCOMMON: "Poco comun",
+
+const RARITY_NAMES := {
+	ItemDefinition.Rarity.COMMON: "Común",
+	ItemDefinition.Rarity.UNCOMMON: "Poco común",
 	ItemDefinition.Rarity.RARE: "Raro",
-	ItemDefinition.Rarity.EPIC: "Epico",
-	ItemDefinition.Rarity.LEGENDARY: "Legendaria",
+	ItemDefinition.Rarity.EPIC: "Épico",
+	ItemDefinition.Rarity.LEGENDARY: "Legendario",
 }
 
-var SLOT_TYPE_NAMES := {
-	ItemDefinition.SlotType.NONE: "",
-	ItemDefinition.SlotType.WEAPON: "Arma",
-	ItemDefinition.SlotType.HELMET: "Casco",
-	ItemDefinition.SlotType.ARMOR: "Armadura",
-	ItemDefinition.SlotType.BOOTS: "Botas",
-	ItemDefinition.SlotType.GLOVES: "Guantes",
-	ItemDefinition.SlotType.ACCESSORY: "Accesorio",
+
+const EQUIPMENT_SLOT_NAMES := {
+	EquipmentItem.EquipmentSlot.WEAPON: "Arma",
+	EquipmentItem.EquipmentSlot.HELMET: "Casco",
+	EquipmentItem.EquipmentSlot.ARMOR: "Armadura",
+	EquipmentItem.EquipmentSlot.BOOTS: "Botas",
+	EquipmentItem.EquipmentSlot.GLOVES: "Guantes",
+	EquipmentItem.EquipmentSlot.RING: "Anillo",
+	EquipmentItem.EquipmentSlot.NECKLACE: "Collar",
+	EquipmentItem.EquipmentSlot.BELT: "Cinturón",
+	EquipmentItem.EquipmentSlot.EARRING: "Arete",
 }
 
-const STAT_NAMES := {
-	"strength": "Fuerza",
-	"agility": "Agilidad",
-	"intelligence": "Inteligencia",
-	"constitution": "Constitucion",
-	"base_physical_damage": "Daño fisico",
-	"base_magical_damage": "Daño magico",
-	"true_damage": "Daño verdadero",
-	"crit_chance": "Chan. critico",
-	"crit_bonus": "Bonus critico",
-	"precision": "Precision",
-	"armor_penetration": "Pen. armadura",
-	"magic_penetration": "Pen. magica",
-	"crit_multiplier": "Mult. critico",
-	"life_steal": "Robo de vida",
-	"energy_steal": "Robo de energia",
-	"counterattack_chance": "Chan. contraataque",
-	"combo_chance": "Chan. combo",
-	"combo_damage": "Daño combo",
-	"armor": "Armadura",
-	"block_chance": "Chan. bloqueo",
-	"dodge_chance": "Chan. esquiva",
-	"damage_reflection": "Reflejo de daño",
-	"tenacity": "Tenacidad",
-	"damage_reduction": "Reduccion de daño",
-	"resist_physical": "Res. fisica",
-	"resist_magical": "Res. magica",
-	"resist_mental": "Res. mental",
-	"resist_fire": "Res. fuego",
-	"resist_ice": "Res. hielo",
-	"resist_holy": "Res. sagrada",
-	"resist_dark": "Res. oscura",
-	"resist_poison": "Res. veneno",
-	"resist_bleed": "Res. sangrado",
-	"resist_control": "Res. control",
-	"resist_movement": "Res. movimiento",
-	"health_restoration": "Regen. vida",
-	"healing_efficiency": "Eficiencia curacion",
-	"energy_regeneration": "Regen. energia",
-}
 
 func _init() -> void:
 	visible = false
@@ -74,7 +38,7 @@ func _init() -> void:
 
 	var bg := ColorRect.new()
 	bg.color = Color(0.15, 0.15, 0.18, 0.95)
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(bg)
 
@@ -96,7 +60,10 @@ func _init() -> void:
 
 	_type_label = Label.new()
 	_type_label.add_theme_font_size_override("font_size", 11)
-	_type_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+	_type_label.add_theme_color_override(
+		"font_color",
+		Color(0.7, 0.7, 0.7)
+	)
 	vbox.add_child(_type_label)
 
 	var sep := HSeparator.new()
@@ -117,67 +84,173 @@ func _init() -> void:
 
 	_weight_label = Label.new()
 	_weight_label.add_theme_font_size_override("font_size", 11)
-	_weight_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+	_weight_label.add_theme_color_override(
+		"font_color",
+		Color(0.7, 0.7, 0.7)
+	)
 	vbox.add_child(_weight_label)
+
 
 func show_for(item: ItemDefinition) -> void:
 	if item == null:
 		hide()
 		return
 
+	_clear_stats()
+
 	_name_label.text = item.name
-	var rarity_name: String = RARITY_NAMES.get(item.rarity, "")
-	var rarity_color: Color = ItemSlotUI.RARITY_COLORS.get(item.rarity, Color.WHITE)
-	_name_label.add_theme_color_override("font_color", rarity_color)
 
-	var type_text := ""
-	if item.item_type == ItemDefinition.ItemType.EQUIPMENT:
-		type_text = SLOT_TYPE_NAMES.get(item.slot_type, "Equipo")
-	elif item.item_type == ItemDefinition.ItemType.CONSUMABLE:
-		type_text = "Consumible"
-	elif item.item_type == ItemDefinition.ItemType.MATERIAL:
-		type_text = "Material"
-	if rarity_name != "":
-		type_text += " - " + rarity_name
-	_type_label.text = type_text
+	var rarity_color: Color = ItemSlotUI.RARITY_COLORS.get(
+		item.rarity,
+		Color.WHITE
+	)
+	_name_label.add_theme_color_override(
+		"font_color",
+		rarity_color
+	)
 
-	_description_label.text = item.description if item.description != "" else ""
+	_type_label.text = _get_type_text(item)
+	_description_label.text = item.description
 
-	for child in _stats_container.get_children():
-		child.queue_free()
+	_add_item_stats(item)
+	_add_item_use_effect(item)
 
-	for stat_name in item.stats:
-		var value: float = item.stats[stat_name]
-		if value == 0:
-			continue
-		var stat_label := Label.new()
-		stat_label.add_theme_font_size_override("font_size", 11)
-		var display_name: String = STAT_NAMES.get(stat_name, stat_name)
-		var prefix := "+" if value > 0 else ""
-		stat_label.text = "%s %s%s" % [display_name, prefix, str(value)]
-		if value > 0:
-			stat_label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3))
-		else:
-			stat_label.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4))
-		_stats_container.add_child(stat_label)
-
-	if item.use_action != &"":
-		var action_label := Label.new()
-		action_label.add_theme_font_size_override("font_size", 11)
-		action_label.add_theme_color_override("font_color", Color(0.5, 0.8, 1.0))
-		var action_text := ""
-		match item.use_action:
-			&"heal":
-				action_text = "Cura %d HP" % item.use_value
-			&"restore_energy":
-				action_text = "Restaura %d energia" % item.use_value
-			&"revive":
-				action_text = "Revive con %d HP" % item.use_value
-			_:
-				action_text = String(item.use_action)
-		action_label.text = action_text
-		_stats_container.add_child(action_label)
-
-	_weight_label.text = "Peso: %.1f" % item.weight
+	if item.weight >= 0:
+		_weight_label.text = "Peso: %.1f" % item.weight
+	else:
+		_weight_label.text = ""
 
 	visible = true
+
+
+func hide_tooltip() -> void:
+	hide()
+
+
+func _get_type_text(item: ItemDefinition) -> String:
+	var type_text := ""
+
+	if item is EquipmentItem:
+		var equipment := item as EquipmentItem
+		type_text = EQUIPMENT_SLOT_NAMES.get(
+			equipment.equipment_type,
+			"Equipamiento"
+		)
+
+	elif item is ConsumableItem:
+		type_text = "Consumible"
+
+	else:
+		type_text = "Objeto"
+
+	var rarity_name: String = RARITY_NAMES.get(
+		item.rarity,
+		""
+	)
+
+	if rarity_name != "":
+		type_text += " - " + rarity_name
+
+	return type_text
+
+
+func _add_item_stats(item: ItemDefinition) -> void:
+	if not item is EquipmentItem:
+		return
+
+	var equipment := item as EquipmentItem
+
+	for stat in equipment.stats:
+		var value: float = equipment.stats[stat]
+
+		if is_zero_approx(value):
+			continue
+
+		_add_stat_label(stat, value)
+
+
+func _add_stat_label(
+	stat: StatsComponent.Stat,
+	value: float
+) -> void:
+	var stat_label := Label.new()
+	stat_label.add_theme_font_size_override("font_size", 11)
+
+	var display_name: String = StatsComponent.STAT_DISPLAY_NAMES.get(
+		stat,
+		"stat invalid"
+	)
+
+	var value_text := _format_stat_value(value)
+
+	stat_label.text = "%s %s" % [
+		display_name,
+		value_text
+	]
+
+	if value > 0:
+		stat_label.add_theme_color_override(
+			"font_color",
+			Color(0.3, 1.0, 0.3)
+	)
+	else:
+		stat_label.add_theme_color_override(
+			"font_color",
+			Color(1.0, 0.4, 0.4)
+		)
+
+	_stats_container.add_child(stat_label)
+
+
+func _format_stat_value(value: float) -> String:
+	var prefix := "+" if value > 0 else ""
+
+	if value == int(value):
+		return "%s%d" % [prefix, int(value)]
+
+	return "%s%.1f" % [prefix, value]
+
+
+func _add_item_use_effect(item: ItemDefinition) -> void:
+	if not item is ConsumableItem:
+		return
+
+	var consumable := item as ConsumableItem
+
+	if consumable.use_action == &"":
+		return
+
+	var action_text := _get_use_action_text(consumable)
+
+	if action_text == "":
+		return
+
+	var action_label := Label.new()
+	action_label.add_theme_font_size_override("font_size", 11)
+	action_label.add_theme_color_override(
+		"font_color",
+		Color(0.5, 0.8, 1.0)
+	)
+	action_label.text = action_text
+
+	_stats_container.add_child(action_label)
+
+
+func _get_use_action_text(item: ConsumableItem) -> String:
+	match item.use_action:
+		&"heal":
+			return "Cura %d HP" % item.use_value
+
+		&"restore_energy":
+			return "Restaura %d energía" % item.use_value
+
+		&"revive":
+			return "Revive con %d HP" % item.use_value
+
+		_:
+			return String(item.use_action)
+
+
+func _clear_stats() -> void:
+	for child in _stats_container.get_children():
+		child.queue_free()

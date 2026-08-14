@@ -121,23 +121,32 @@ func show_actions() -> void:
 
 func _refresh() -> void:
 	for child in _grid.get_children():
-		child.queue_free()
+		child.free()
 
 	if _inventory == null:
 		return
 
 	for slot in _inventory.items:
 		var slot_ui := ItemSlotUI.new()
-		slot_ui.setup(slot)
+
+		slot_ui.set_item(slot.item)
+		slot_ui.set_quantity(slot.quantity)
+
 		slot_ui.slot_clicked.connect(_on_slot_clicked)
 		slot_ui.slot_hovered.connect(_on_slot_hovered)
 		slot_ui.slot_unhovered.connect(_on_slot_unhovered)
+
 		_grid.add_child(slot_ui)
 
 	var empty_count := _inventory.capacity - _inventory.items.size()
+
 	for _i in range(empty_count):
 		var empty_slot_ui := ItemSlotUI.new()
-		empty_slot_ui.setup_empty(ItemDefinition.SlotType.NONE)
+
+		empty_slot_ui.slot_clicked.connect(_on_slot_clicked)
+		empty_slot_ui.slot_hovered.connect(_on_slot_hovered)
+		empty_slot_ui.slot_unhovered.connect(_on_slot_unhovered)
+
 		_grid.add_child(empty_slot_ui)
 
 	_weight_label.text = "Peso: %.1f" % _inventory.get_total_weight()
@@ -148,10 +157,18 @@ func _on_slot_clicked(slot_ui: ItemSlotUI) -> void:
 		if child is ItemSlotUI:
 			child.set_highlighted(false)
 
+	var slot_index := _grid.get_children().find(slot_ui)
+
+	if slot_index == -1 or slot_index >= _inventory.items.size():
+		return
+
+	_selected_slot = _inventory.items[slot_index]
+
 	slot_ui.set_highlighted(true)
-	_selected_slot = slot_ui.get_slot_data()
+
 	_update_actions()
 	_update_tooltip()
+
 	slot_selected.emit(_selected_slot)
 
 func _on_slot_hovered(_slot_ui: ItemSlotUI) -> void:
@@ -161,10 +178,12 @@ func _on_slot_unhovered(_slot_ui: ItemSlotUI) -> void:
 	pass
 
 func _on_item_added(_item: ItemDefinition, _qty: int) -> void:
-	_refresh()
+	#_refresh()
+	pass
 
 func _on_item_removed(_item: ItemDefinition, _qty: int) -> void:
-	_refresh()
+	#_refresh()
+	pass
 
 func _update_actions() -> void:
 	if _selected_slot == null or _selected_slot.item == null:
@@ -174,8 +193,8 @@ func _update_actions() -> void:
 		return
 
 	var item := _selected_slot.item
-	_equip_btn.visible = item.is_equipment()
-	_use_btn.visible = item.is_consumable()
+	_equip_btn.visible = item is EquipmentItem
+	_use_btn.visible = item is ConsumableItem
 	_drop_btn.visible = true
 
 func _update_tooltip() -> void:

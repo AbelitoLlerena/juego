@@ -1,0 +1,2 @@
+class_name MaterialItem
+extends ItemDefinition
