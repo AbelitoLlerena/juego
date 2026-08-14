@@ -3,231 +3,324 @@ extends RefCounted
 
 static func attack_being(context:AttackContext) -> void:
 	_build_attack_stats(context)
+
+	EffectSystem.apply_effect_event(
+		context.attacker,
+		EffectTrigger.Trigger.ON_ATTACK,
+		context
+	)
+
+	EffectSystem.apply_effect_event(
+		context.target,
+		EffectTrigger.Trigger.ON_HIT,
+		context
+	)
+
 	_calculate_hit(context)
-	
 	if context.result.evaded:
 		return
 
-	_calculate_critical(context)
-	var damage := _calculate_raw_damage(context)
-	_calculate_block(context, damage)
-	_apply_armor(context, damage)
-	_apply_resistances(context, damage)
-	
-	context.result.magical_damage = damage["magical"]
-	context.result.physical_damage = damage["physical"]
-	context.result.true_damage = damage["true"]
+	if !context.result.weak:
+		_calculate_critical(context.stats,context.result)
+		_calculate_secondary_effects(context.stats,context.result)
+	_calculate_raw_damage(context)
+	_calculate_block(context)
+	_apply_armor(context)
+	_apply_resistances(context)
 
-	_calculate_secondary_effects(context)
 	_calculate_total_damage(context)
 	_calculate_damage_reduction(context)
 	_calculate_life_steal(context)
-	_calculate_energy_steal(context)
 	_calculate_reactions(context)
 
 static func attack_thing(context:AttackContext) -> void:
-	_calculate_base_damage(context)
-	var damage := _calculate_raw_damage(context)
-	
-	context.result.magical_damage = damage["magical"]
-	context.result.physical_damage = damage["physical"]
-	context.result.true_damage = damage["true"]
+	_calculate_attack_damage(context)
+	_calculate_critical_stats(context.attacker, context.stats)
+
+	_calculate_critical(context.stats,context.result)
+	_calculate_raw_damage(context)
 
 	_calculate_total_damage(context)
 
-static func _build_attack_stats(context: AttackContext) -> void:
-	_calculate_base_damage(context)
+static func caster_skill_damage(context: AttackContext) -> void:
 	_calculate_precision(context)
-	_calculate_critical_stats(context)
+	_calculate_critical_stats(context.attacker, context.stats)
 	_calculate_armor_penetration(context)
 	_calculate_steal_stats(context)
-	_calculate_effect_chances(context)
+	_calculate_effect_chances(context.stats)
 
-static func _calculate_base_damage(context: AttackContext) -> void:
-	context.stats.physical_damage = \
-		context.attacker.stats.base_physical_damage
+	EffectSystem.apply_effect_event(
+		context.attacker,
+		EffectTrigger.Trigger.ON_CASTER,
+		context
+	)
 
-	context.stats.magical_damage = \
-		context.attacker.stats.base_magical_damage
+	EffectSystem.apply_effect_event(
+		context.target,
+		EffectTrigger.Trigger.ON_HIT,
+		context
+	)
 
-	context.stats.true_damage = \
-		context.attacker.stats.true_damage
+	_calculate_hit(context)
+	if context.result.evaded:
+		return
+
+	if !context.result.weak:
+		_calculate_critical(context.stats,context.result)
+		_calculate_secondary_effects(context.stats,context.result)
+	_calculate_raw_damage(context)
+	_calculate_block(context)
+	_apply_armor(context)
+	_apply_resistances(context)
+
+	_calculate_total_damage(context)
+	_calculate_damage_reduction(context)
+	_calculate_life_steal(context)
+
+static func caster_skill_heal(context: HealContext) -> void:
+	_calculate_critical_stats(context.healer,context.stats)
+	_calculate_effect_chances(context.stats)
+
+	EffectSystem.apply_effect_event(
+		context.attacker,
+		EffectTrigger.Trigger.ON_CASTER,
+		context
+	)
+
+	_calculate_critical(context.stats,context.result)
+	_calculate_total_heal(context)
+	_calculate_secondary_effects(context.stats,context.result)
+
+static func _build_attack_stats(context: AttackContext) -> void:
+	_calculate_attack_damage(context)
+	_calculate_precision(context)
+	_calculate_critical_stats(context.attacker,context.stats)
+	_calculate_armor_penetration(context)
+	_calculate_steal_stats(context)
+	_calculate_effect_chances(context.stats)
+
+static func _calculate_attack_damage(context: AttackContext) -> void:
+	var attack_damage = context.attacker.stats.attack_damage.duplicate()
+	context.stats.damage = context.attacker.stats.attack_damage.duplicate()
 
 static func _calculate_precision(context: AttackContext) -> void:
-	context.stats.precision = \
-		context.attacker.stats.precision
+	context.stats.precision += \
+		context.attacker.stats.get_stat(
+			StatsComponent.Stat.PRECISION
+		)
 
-	context.stats.precision += context.tags["precision"]
+static func _calculate_critical_stats(
+	actor: Being, 
+	stats: BaseStatsContext
+) -> void:
+	stats.critical_chance += \
+		actor.stats.get_stat(
+			StatsComponent.Stat.CRIT_CHANCE
+		)
 
-static func _calculate_critical_stats(context: AttackContext) -> void:
-	context.stats.critical_chance = \
-		context.attacker.stats.crit_chance
-
-	context.stats.critical_multiplier += \
-		context.attacker.stats.crit_multiplier
+	stats.critical_multiplier += \
+		actor.stats.get_stat(
+			StatsComponent.Stat.CRIT_BONUS
+		)
 
 static func _calculate_armor_penetration(context: AttackContext) -> void:
-	context.stats.armor_penetration = \
-		context.attacker.stats.armor_penetration
-
 	context.stats.armor_penetration += \
-		context.tags["armor_penetration"]
+		context.attacker.stats.get_stat(
+			StatsComponent.Stat.ARMOR_PENETRATION
+		)
 
 static func _calculate_steal_stats(context: AttackContext) -> void:
-	context.stats.life_steal = \
-		context.attacker.stats.life_steal
+	context.stats.life_steal += \
+		context.attacker.stats.get_stat(
+			StatsComponent.Stat.LIFE_STEAL
+		)
 
-	context.stats.energy_steal = \
-		context.attacker.stats.energy_steal
-
-static func _calculate_effect_chances(context: AttackContext) -> void:
-	context.stats.effect_chances.clear()
+static func _calculate_effect_chances(stats: BaseStatsContext) -> void:
+	stats.effect_chances.clear()
 
 	#for effect in context.weapon.effects:
 		#context.stats.effect_chances[effect] = effect.chance
 
 static func _calculate_hit(context: AttackContext) -> void:
-	var weak:float = context.attacker.stats.weak_chance
+	var weak: float = context.attacker.stats.get_stat(
+		StatsComponent.Stat.WEAK_CHANCE
+	)
 	
-	var hit:float = context.attacker.stats.precision
-	var evade:float = context.target.stats.dodge_chance
+	var evade: float = context.target.stats.get_stat(
+		StatsComponent.Stat.DODGE_CHANCE
+	)
 
 	context.result.weak = randf() <= weak
-	if randf() <= hit-evade:
+	if randf() <= context.stats.precision - evade:
 		if context.result.weak:
 			context.result.evaded = true
-		else: 
+		else:
 			context.result.weak = true
 
-static func _calculate_critical(context: AttackContext) -> void:
+static func _calculate_critical(
+	stats: BaseStatsContext, 
+	result: BaseResultContext
+) -> void:
+	result.critical = \
+		randf() <= stats.critical_chance
+
+static func _calculate_raw_damage(
+	context: AttackContext
+) -> void:
+
+	var phisical_multiplier = context.attacker.stats.get_stat(
+		StatsComponent.Stat.ATTACK_POWER
+	)
+	var magical_multiplier = context.attacker.stats.get_stat(
+		StatsComponent.Stat.MAGICAL_POWER
+	)
+
 	if context.result.weak:
-		context.result.critical = false
-	else:
-		context.result.critical = \
-			randf() <= context.stats.critical_chance
-
-static func _calculate_raw_damage(context: AttackContext) -> Dictionary[String,float]:
-	var physical:int = context.stats.physical_damage
-	var magical:int = context.stats.magical_damage
-	var true_damage:int = context.stats.true_damage
-
-	var multiplier:float = 1
-
-	if context.result.weak:
-		multiplier = 0.5
+		phisical_multiplier *= 0.5
+		magical_multiplier *= 0.5
 	elif context.result.critical:
-		multiplier = context.stats.critical_multiplier
+		phisical_multiplier += context.attacker.stats.get_stat(
+			StatsComponent.Stat.CRIT_BONUS
+		)
+		magical_multiplier += context.attacker.stats.get_stat(
+			StatsComponent.Stat.CRIT_BONUS
+		)
 
-	physical *= multiplier
-	magical *= multiplier
-	true_damage *= multiplier
-
-	return {
-		"physical": physical,
-		"magical": magical,
-		"true": true_damage
-	}
+	for damage_type in context.stats.damage.keys():
+		if context.stats.damage.has(damage_type):
+			context.stats.damage[damage_type] += (
+				context.attacker.stats.attack_damage[damage_type]
+				* phisical_multiplier 
+				if DamageType.is_damage_phisical(damage_type)
+				else magical_multiplier 
+				if DamageType.is_damage_magical(damage_type)
+				else 1
+			)
+		else:
+			context.stats.damage[damage_type] = (
+				context.attacker.stats.attack_damage[damage_type]
+				* phisical_multiplier 
+				if DamageType.is_damage_phisical(damage_type)
+				else magical_multiplier 
+				if DamageType.is_damage_magical(damage_type)
+				else 1
+			)
 
 static func _apply_armor(
 	context: AttackContext,
-	damage: Dictionary[String,float]
-) -> Dictionary[String,float]:
+) -> void:
 	var armor = max(
 		0,
-		context.target.stats.armor * (1 - context.stats.armor_penetration)
+		context.target.stats.get_stat(
+			StatsComponent.Stat.ARMOR
+		) * (1 - context.stats.armor_penetration)
 	)
 
-	var physical_damage = damage["physical"] - armor
-	var magical_damage = damage["magical"] - armor / 3
+	for damage_type in context.stats.damage.keys():
+		var damage = context.stats.damage[damage_type] - (
+			armor
+			if DamageType.is_damage_phisical(damage_type)
+			else armor / 3 
+			if DamageType.is_damage_magical(damage_type)
+			else 0
+		)
 
-	damage["physical"] = max(0, physical_damage)
-	damage["magical"] = max(0, magical_damage)
-
-	return damage
+		context.stats.damage[damage_type] = max(0, damage)
 
 static func _calculate_block(
 	context: AttackContext,
-	damage: Dictionary[String,float]
-) -> Dictionary[String,float]:
+) -> void:
 
-	if randf() > context.target.stats.block_chance:
-		return damage
-
-	context.result.blocked = true
-	context.result.blocked_damage = 0
-
-	if damage["physical"] >= context.target.stats.shield:
-		var phisical_damage = damage["physical"] - context.target.stats.shield
-		context.target.stats.shield = 0
-		damage["physical"] = phisical_damage
-		context.result.blocked_damage = phisical_damage
-		return damage
-
-	context.target.stats.shield -= damage["physical"]
-	context.result.blocked_damage += damage["physical"]
-	damage["physical"] = 0
-
-	if damage["magical"] >= context.target.stats.shield:
-		var magical_damage = damage["magical"] - context.target.stats.shield
-		context.target.stats.shield = 0
-		damage["magical"] = magical_damage
-		context.result.blocked_damage = magical_damage
-		return damage
-
-	context.target.stats.shield -= damage["magical"]
-	context.result.blocked_damage += damage["magical"]
-	damage["magical"] = 0
-	return damage
-
-static func _apply_resistances(context: AttackContext, damage: Dictionary[String,float]) -> Dictionary[String,float]:
-	var damage_physical = damage["physical"] - context.target.stats.resist_physical
-	var damage_magical = damage["magical"] - context.target.stats.resist_magical
-
-	damage["physical"] = max(0, damage_physical)
-	damage["magical"] = max(0, damage_magical)
-
-	return damage
-
-static func _calculate_total_damage(context: AttackContext) -> void:
-	context.result.total_damage = \
-		context.result.physical_damage \
-		+ context.result.magical_damage \
-		+ context.result.true_damage
-
-static func _calculate_damage_reduction(context: AttackContext) -> void:
-	context.result.total_damage *= (1-context.target.stats.damage_reduction)
-
-static func _calculate_secondary_effects(context: AttackContext) -> void:
-	if context.result.weak:
+	if randf() > context.target.stats.get_stat(
+		StatsComponent.Stat.BLOCK_CHANCE
+	):
 		return
 
-	for effect in context.stats.effect_chances:
-		var chance = context.stats.effect_chances[effect]
+	context.result.blocked = true
+	var blocked_damage = 0
+	var shield = context.target.stats.get_stat(
+		StatsComponent.Stat.SHIELD
+	)
 
-		if randf() <= chance + chance * context.result.critical:
-			var application := EffectDefinition.new()
+	for damage_type in context.stats.damage.keys():
+		if context.stats.damage[damage_type] >= shield:
+			var damage = context.stats.damage[damage_type] - shield
+			context.target.stats.set_stat(StatsComponent.Stat.SHIELD, 0)
+			context.stats.damage[damage_type] = damage
+			blocked_damage += shield
+			break
 
-			application.effect = effect
-			application.source = context.attacker
-			application.target = context.target
+		context.target.stats.set_stat(StatsComponent.Stat.SHIELD, shield)
+		blocked_damage += context.stats.damage[damage_type]
+		context.stats.damage[damage_type] = 0
 
-			context.result.effects.append(application)
+	context.result.blocked_damage = int(blocked_damage)
+
+static func _apply_resistances(
+	context: AttackContext, 
+) -> void:
+	for damage_type in context.stats.damage.keys():
+		context.stats.damage[damage_type] = max(
+			0,
+			context.stats.damage[damage_type] * (
+				1 - context.target.stats.get_resistence_at(
+					damage_type
+				)
+			)
+		)
+
+static func _calculate_total_damage(context: AttackContext) -> void:
+	var total = 0
+	for damage in context.stats.damage.values():
+		total += damage
+
+	context.result.total = total
+
+static func _calculate_damage_reduction(context: AttackContext) -> void:
+	context.result.total *= int(
+		1 - context.target.stats.get_stat(
+			StatsComponent.Stat.DAMAGE_REDUCTION
+		)
+	)
+
+static func _calculate_secondary_effects(
+	stats: BaseStatsContext, 
+	result: BaseResultContext
+) -> void:
+	for effect in stats.effect_chances.keys():
+		var chance = stats.effect_chances[effect]
+		chance += chance * result.critical
+		#aplicar resistencia a efectos
+
+		if randf() <= chance:
+			result.effects.append(effect)
 
 static func _calculate_life_steal(context: AttackContext) -> void:
 	context.result.life_stolen = int(
-		context.result.total_damage
-		* context.stats.life_steal
-	)
-
-static func _calculate_energy_steal(context: AttackContext) -> void:
-	context.result.energy_stolen = int(
-		context.result.total_damage
-		* context.stats.energy_steal
+		context.result.total
+		* context.stats.life_steal * (1 + 
+			context.attacker.stats.get_stat(
+				StatsComponent.Stat.HEALING_EFFICIENCY
+			)
+		)
 	)
 
 static func _calculate_reactions(context: AttackContext) -> void:
 	context.result.reflected_damage = \
-		context.result.total_damage*context.target.stats.damage_reflection
+		context.result.total * \
+		context.target.stats.get_stat(
+			StatsComponent.Stat.DAMAGE_REFLECTION
+		)
 
-	if randf() < context.target.stats.counterattack_chance:
+	if randf() <= context.target.stats.get_stat(
+		StatsComponent.Stat.COUNTERATTACK_CHANCE
+	):
 		context.result.reaction = true
+
+static  func _calculate_total_heal(context: HealContext) -> void:
+	context.result.total = int(
+		context.stats.base_heal
+		* context.stats.critical_multiplier 
+		if context.result.critical
+		else 1.0
+	)

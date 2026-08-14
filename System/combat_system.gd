@@ -20,6 +20,7 @@ func attack_event(attacker: Being, target: Entity) -> void:
 		AttackSystem.attack_being(context)
 
 	attacker.turn.consuming_point(TurnComponent.TypePoint.ACTION)
+
 	_process_attack(context)
 
 func counter_attack_event(attacker: Being, target: Being) -> void:
@@ -44,6 +45,18 @@ func opportunity_attack_event(attacker: Being, target: Being) -> void:
 	context.result.reaction = false
 	context.result.opportunity = true
 
+	_process_attack(context)
+
+func execute_attack(context: AttackContext) -> void:
+	AttackSystem.attack_being(context)
+	_process_attack(context)
+
+func execute_heal(context: HealContext) -> void:
+	AttackSystem.caster_skill_heal(context)
+	_process_heal(context)
+
+func execute_damage(context: AttackContext) -> void:
+	AttackSystem.caster_skill_damage(context)
 	_process_attack(context)
 
 func deal_damage_event(target: Being, damage: int) -> void:
@@ -105,7 +118,7 @@ func _process_attack(context: AttackContext) -> void:
 
 	_apply_damage(
 		context.target.health,
-		context.result.total_damage
+		context.result.total
 	)
 
 	_apply_heal(
@@ -113,20 +126,15 @@ func _process_attack(context: AttackContext) -> void:
 		context.result.life_stolen
 	)
 
-	_restore_energy(
-		context.attacker.energy,
-		context.result.energy_stolen
-	)
-
 	_apply_attack_reactions(context)
 	_dispatch_events(context)
-	
-	#for effect in context.result.effects:
-		#if context.target is Being:
+
+	#if context.target is Being:
+		#for effect in context.result.effects:
 			#EffectSystem.add_effect(context.target.effect)
 
-	for effect in context.result.effects:
-		_apply_effects(context.target.effects, effect)
+	#for effect in context.result.effects:
+		#_apply_effects(context.target.effects, effect)
 
 	var a := context.attacker.name
 	var b := context.target.name
@@ -150,14 +158,8 @@ func _process_attack(context: AttackContext) -> void:
 
 	register_action.emit(
 		"%s recibe %d de daño"
-		% [b, context.result.total_damage]
+		% [b, context.result.total]
 	)
-
-	if context.result.energy_stolen > 0:
-		register_action.emit(
-			"%s roba %d de energía"
-			% [a, context.result.energy_stolen]
-		)
 
 	if context.result.life_stolen > 0:
 		register_action.emit(
@@ -176,6 +178,24 @@ func _process_attack(context: AttackContext) -> void:
 		counter_attack_event(context.target, context.attacker)
 	else:
 		end_action.emit()
+
+func _process_heal(context: HealContext) -> void:
+	_apply_heal(
+		context.target.health,
+		int(context.result.total)
+	)
+
+	register_action.emit(
+			"%s recibe %d de vida"
+			% [context.target.entity_name, 
+			context.result.total
+		]
+	)
+
+	#if context.target is Being:
+		#for effect in context.result.effects:
+			#EffectSystem.add_effect(context.target.effect)
+
 
 func _apply_damage(target:HealthComponent, damage:int) -> void:
 	if damage <= 0:
@@ -201,8 +221,8 @@ func _spend_energy(target:EnergyComponent,amount:int) -> void:
 
 	HealthSystem.spend_energy(target,amount)
 
-func _apply_effects(target:EffectComponent,effect:EffectDefinition) -> void:
-	EffectSystem.add_effect(target,effect)
+#func _apply_effects(target:EffectComponent,effect:EffectDefinition) -> void:
+	#EffectSystem.add_effect(target,effect)
 
 #func _mofify_stat(
 	#target:StatsComponent,

@@ -19,47 +19,58 @@ func add_item(item: ItemDefinition, qty: int = 1) -> int:
 
 	while remaining > 0 and items.size() < capacity:
 		var slot := InventorySlot.new()
-		slot.item = item
-		slot.quantity = 0
-		var overflow := slot.add_quantity(remaining)
-		items.append(slot)
-		remaining = overflow
 
-	if remaining < qty:
-		var added := qty - remaining
-		item_added.emit(item, added)
-		inventory_changed.emit()
+		# Cada InventorySlot tiene su propia instancia del item.
+		slot.item = item.duplicate()
+		slot.quantity = 0
+
+		remaining = slot.add_quantity(remaining)
+
+		items.append(slot)
+
+	var added := qty - remaining
+
+	item_added.emit(item, added)
+	inventory_changed.emit()
 
 	return remaining
-
+	
 func remove_item(id: StringName, qty: int = 1) -> int:
 	if qty <= 0:
 		return 0
 
 	var remaining := qty
 	var to_remove: Array[int] = []
+	var removed_item: ItemDefinition = null
 
 	for i in items.size():
 		if remaining <= 0:
 			break
+
 		var slot := items[i]
+
 		if slot.item == null or slot.item.id != id:
 			continue
+
+		if removed_item == null:
+			removed_item = slot.item
+
 		var removed := slot.remove_quantity(remaining)
 		remaining -= removed
+
 		if slot.is_empty():
 			to_remove.append(i)
 
-	to_remove.sort()
 	to_remove.reverse()
+
 	for i in to_remove:
 		items.remove_at(i)
 
 	var total_removed := qty - remaining
-	if total_removed > 0:
-		var removed_item := _find_item_definition(id)
-		item_removed.emit(removed_item, total_removed)
-		inventory_changed.emit()
+
+	# La señal se emite siempre que se haya removido algo.
+	item_removed.emit(removed_item, total_removed)
+	inventory_changed.emit()
 
 	return total_removed
 
@@ -116,13 +127,6 @@ func get_sorted_items() -> Array[InventorySlot]:
 			return a.item.rarity > b.item.rarity
 		return a.item.name < b.item.name
 	)
-	return result
-
-func get_items_by_type(item_type: ItemDefinition.ItemType) -> Array[InventorySlot]:
-	var result: Array[InventorySlot] = []
-	for slot in items:
-		if slot.item != null and slot.item.item_type == item_type:
-			result.append(slot)
 	return result
 
 func clear() -> void:

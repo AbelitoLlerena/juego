@@ -1,5 +1,5 @@
 class_name CombatContext
-extends RefCounted
+extends Resource
 
 var id: int
 var cancelled := false

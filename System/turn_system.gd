@@ -45,3 +45,33 @@ func remove(entity):
 
 	if current_index >= index:
 		current_index -= 1
+
+func delay_current_turn(n: int) -> void:
+	if n <= 0 or n >= turn_order.size():
+		return
+
+	var index := current_index
+	var next_entity := turn_order[(
+		index + 1
+		if index + 1 < turn_order.size()
+		else 0
+	)]
+
+	turn_order.remove_at(index)
+
+	if turn_order.is_empty():
+		turn_order.append(current_entity)
+		end_turn()
+		return
+
+	var insert_index := (index + n) % turn_order.size()
+	turn_order.insert(insert_index, current_entity)
+
+	index = turn_order.find(next_entity)
+	current_index = (
+		index - 1
+		if index - 1 > 0
+		else turn_order.size() - 1
+	)
+
+	end_turn()

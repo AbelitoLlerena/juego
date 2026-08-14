@@ -12,7 +12,9 @@ func decide(context: AIContext) -> EventDefinition:
 	if target == null:
 		return EndTurnEvent.new()
 
-	if context.actor.stats.range >= DistanceService.distance(
+	if context.actor.stats.get_stat(
+		StatsComponent.Stat.RANGE
+	) >= DistanceService.distance(
 		context.actor.c_position.grid_position,
 		target.c_position.grid_position
 	) and context.actor.turn.action_points > 0:

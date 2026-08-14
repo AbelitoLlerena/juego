@@ -81,12 +81,15 @@ static func refill(
 	energy.energy = energy.max_energy
 
 static func end_turn(entity: Being) -> void:
-	entity.health.regen_bar += entity.stats.health_restoration
-	entity.energy.regen_bar += entity.stats.energy_regeneration
+	entity.health.regen_bar += entity.stats.get_stat(
+		StatsComponent.Stat.HEALTH_RESTORATION
+	)
 
 	if entity.health.regen_bar >= 1.0:
 		entity.health.regen_bar = 0
-		var heal_amount = int(entity.health.max_health * entity.stats.healing_efficiency)
+		var heal_amount = int(entity.health.max_health * entity.stats.get_stat(
+			StatsComponent.Stat.HEALING_EFFICIENCY
+		))
 		entity.health.set_health(entity.health.current + heal_amount)
 		print("Regenerado: %d HP, vida actual: %d" % [heal_amount, entity.health.current])
 	
